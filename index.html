@@ -30,7 +30,8 @@
 
         .center-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
 
-        #titleScreen { display: block; top: 35%; }
+        /* 初期状態ではタイトル画面は非表示、ロード完了後に表示されます */
+        #titleScreen { display: none; top: 35%; }
         #titleScreen h1 {
             color: #fff; font-size: clamp(32px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
             text-shadow: 4px 4px 0 #e74c3c, -2px -2px 0 #3498db; font-style: italic; white-space: nowrap;
@@ -101,6 +102,12 @@
         .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 
         .instruction { position: absolute; bottom: 3%; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.6); font-size: clamp(10px, 2vw, 14px); text-shadow: 1px 1px 0 #000; }
+
+        /* ローディング画面のスタイル */
+        #loadingScreen {
+            display: block;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -108,11 +115,20 @@
 <div id="gameContainer">
     <canvas id="gameCanvas" width="960" height="540"></canvas>
     <div id="uiLayer">
+        <!-- プリロード用のロード画面 -->
+        <div id="loadingScreen" class="center-msg">
+            <h1 style="color: #fff; font-size: clamp(24px, 5vw, 40px); margin: 0 0 10px 0; font-weight: bold; text-shadow: 2px 2px 0 #000;">LOADING ASSETS</h1>
+            <div style="width: clamp(150px, 40vw, 300px); height: 10px; background: #222; margin: 15px auto; border-radius: 5px; overflow: hidden; border: 2px solid #555;">
+                <div id="loadingBar" style="width: 0%; height: 100%; background: #3498db; transition: width 0.1s;"></div>
+            </div>
+            <p id="loadingProgress" style="color: #888; font-size: clamp(12px, 2.5vw, 16px); margin: 0;">0%</p>
+        </div>
+
         <div id="titleScreen" class="center-msg">
             <h1>High-Low Silver!</h1>
             <p class="blink">TAP OR PRESS SPACE TO START</p>
         </div>
-        <div id="titleScoreBox" class="score-box"><div id="highScoreDisplayTitle">HIGH SCORE: 0</div></div>
+        <div id="titleScoreBox" class="score-box" style="display: none;"><div id="highScoreDisplayTitle">HIGH SCORE: 0</div></div>
         <div id="instructionScreen" class="center-msg">
             <h2>HOW TO PLAY</h2>
             <p class="desc">
@@ -151,7 +167,6 @@
 
     // ==========================================================
     // ▼ キャラクター＆天体の画像 URL 設定 ▼
-    // ローカルで使用する場合、htmlファイルと同じ階層に置いた相対パスも指定可能です。
     // ==========================================================
     const PLAYER_RUN_URLS = [
         "images/player_run0.png",
@@ -176,15 +191,15 @@
     const SYAPUFURA_JUMP_URL = "images/syapufura_jump.png";
 
     const OTOTO_RUN_URLS = [
-        "images/otooto_run0.png",
-        "images/otooto_run1.png",
-        "images/otooto_run2.png",
-        "images/otooto_run3.png",
-        "images/otooto_run4.png",
-        "images/otooto_run5.png",
-        "images/otooto_run6.png"
+        "images/ototo_run0.png",
+        "images/ototo_run1.png",
+        "images/ototo_run2.png",
+        "images/ototo_run3.png",
+        "images/ototo_run4.png",
+        "images/ototo_run5.png",
+        "images/ototo_run6.png"
     ];
-    const OTOTO_JUMP_URL = "images/otooto_jump.png";
+    const OTOTO_JUMP_URL = "images/ototo_jump.png";
 
     const KOJITATSU_RUN_URLS = [
         "images/kojitatsu_run0.png",
@@ -202,88 +217,179 @@
 
     // ==========================================================
     // ▼ 効果音の URL 設定 ▼
+    // sounds/pause_out.mp3 の代わりとして sounds/button.mp3 を割り当てています
     // ==========================================================
-    const SE_HORSE_RUN_URL    = "sounds/horse_run.mp3";    // 走行音（馬）
-    const SE_BUTTON_URL       = "sounds/button.mp3";       // UI決定
-    const SE_JUMP_URL         = "sounds/jump.mp3";         // ジャンプ
-    const SE_STOMP_URL        = "sounds/stomp.mp3";        // 急降下
-    const SE_FALL_URL         = "sounds/fall.mp3";         // 落下
-    const SE_WARNING_URL      = "sounds/warning.mp3";      // 警告
+    const SE_HORSE_RUN_URL    = "sounds/horse_run.mp3";    
+    const SE_BUTTON_URL       = "sounds/button.mp3";       
+    const SE_JUMP_URL         = "sounds/jump.mp3";         
+    const SE_STOMP_URL        = "sounds/stomp.mp3";        
+    const SE_FALL_URL         = "sounds/fall.mp3";         
+    const SE_WARNING_URL      = "sounds/warning.mp3";      
     
-    const SE_FLY_BIRD_URL     = "sounds/fly_bird.mp3";     // 接近・環境音（椋鳥）
-    const SE_FLY_PLANE_URL    = "sounds/fly_plane.mp3";    // 接近・環境音（飛行機）
-    const SE_FLY_ROCKET_URL   = "sounds/fly_rocket.mp3";   // 接近・環境音（ロケット）
+    const SE_FLY_BIRD_URL     = "sounds/fly_bird.mp3";     
+    const SE_FLY_PLANE_URL    = "sounds/fly_plane.mp3";    
+    const SE_FLY_ROCKET_URL   = "sounds/fly_rocket.mp3";   
     
-    const SE_CRASH_BIRD_URL   = "sounds/crash_bird.mp3";   // 衝突（椋鳥）
-    const SE_CRASH_PLANE_URL  = "sounds/crash_plane.mp3";  // 衝突（飛行機）
-    const SE_CRASH_ROCKET_URL = "sounds/crash_rocket.mp3"; // 衝突（ロケット）
+    const SE_CRASH_BIRD_URL   = "sounds/crash_bird.mp3";   
+    const SE_CRASH_PLANE_URL  = "sounds/crash_plane.mp3";  
+    const SE_CRASH_ROCKET_URL = "sounds/crash_rocket.mp3"; 
     
-    const SE_LEVELUP_URL      = "sounds/levelup.mp3";      // レベルアップ
-    const SE_RIVAL_APPEAR_URL = "sounds/rival_appear.mp3"; // ライバル登場
-    const SE_RIVAL_PASS_URL   = "sounds/rival_pass.mp3";   // 追い抜き（おとーと、こじたつ）
-    const SE_BOSS_PASS_URL    = "sounds/boss_pass.mp3";    // 追い抜き（しゃぷふら）
+    const SE_LEVELUP_URL      = "sounds/levelup.mp3";      
+    const SE_RIVAL_APPEAR_URL = "sounds/rival_appear.mp3"; 
+    const SE_RIVAL_PASS_URL   = "sounds/rival_pass.mp3";   
+    const SE_BOSS_PASS_URL    = "sounds/boss_pass.mp3";    
     
-    const SE_PAUSE_IN_URL     = "sounds/pause_in.mp3";     // ポーズ
-    const SE_PAUSE_OUT_URL    = "sounds/button.mp3";    // 再開
+    const SE_PAUSE_IN_URL     = "sounds/pause_in.mp3";     
+    const SE_PAUSE_OUT_URL    = "sounds/button.mp3";       // pause_outをbuttonに変更
     
-    const SE_CLEAR_URL        = "sounds/clear.mp3";        // 特殊クリア演出
+    const SE_CLEAR_URL        = "sounds/clear.mp3";        
 
     // ==========================================================
 
     const transparentPixel = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     
-    function createCharImages(runUrls, jumpUrl) {
-        const runImgs = [];
-        for (let i = 0; i < 7; i++) {
-            let img = new Image();
-            img.src = runUrls[i] || transparentPixel;
-            runImgs.push(img);
-        }
-        const jumpImg = new Image(); 
-        jumpImg.src = jumpUrl || transparentPixel;
-        return { run: runImgs, jump: jumpImg };
-    }
-
-    var playerImages = createCharImages(PLAYER_RUN_URLS, PLAYER_JUMP_URL);
-    var syapufuraImages = createCharImages(SYAPUFURA_RUN_URLS, SYAPUFURA_JUMP_URL);
-    var ototoImages = createCharImages(OTOTO_RUN_URLS, OTOTO_JUMP_URL);
-    var kojitatsuImages = createCharImages(KOJITATSU_RUN_URLS, KOJITATSU_JUMP_URL);
-
-    const sunImage = new Image(); if(SUN_IMG_URL) sunImage.src = SUN_IMG_URL;
-    const moonImage = new Image(); if(MOON_IMG_URL) moonImage.src = MOON_IMG_URL;
-
-    function createAudio(url) {
-        if (!url) return null;
-        let audio = new Audio(url);
-        audio.load();
-        return audio;
-    }
+    // ロード完了後に実画像を格納するオブジェクト
+    const playerImages = { run: [], jump: new Image() };
+    const syapufuraImages = { run: [], jump: new Image() };
+    const ototoImages = { run: [], jump: new Image() };
+    const kojitatsuImages = { run: [], jump: new Image() };
+    const sunImage = new Image();
+    const moonImage = new Image();
 
     const audioSE = {
-        horseRun: createAudio(SE_HORSE_RUN_URL),
-        button: createAudio(SE_BUTTON_URL),
-        jump: createAudio(SE_JUMP_URL),
-        stomp: createAudio(SE_STOMP_URL),
-        fall: createAudio(SE_FALL_URL),
-        warning: createAudio(SE_WARNING_URL),
-        flyBird: createAudio(SE_FLY_BIRD_URL),
-        flyPlane: createAudio(SE_FLY_PLANE_URL),
-        flyRocket: createAudio(SE_FLY_ROCKET_URL),
-        crashBird: createAudio(SE_CRASH_BIRD_URL),
-        crashPlane: createAudio(SE_CRASH_PLANE_URL),
-        crashRocket: createAudio(SE_CRASH_ROCKET_URL),
-        levelup: createAudio(SE_LEVELUP_URL),
-        rivalAppear: createAudio(SE_RIVAL_APPEAR_URL),
-        rivalPass: createAudio(SE_RIVAL_PASS_URL),
-        bossPass: createAudio(SE_BOSS_PASS_URL),
-        pauseIn: createAudio(SE_PAUSE_IN_URL),
-        pauseOut: createAudio(SE_PAUSE_OUT_URL),
-        clear: createAudio(SE_CLEAR_URL)
+        horseRun: null, button: null, jump: null, stomp: null, fall: null, warning: null,
+        flyBird: null, flyPlane: null, flyRocket: null, crashBird: null, crashPlane: null,
+        crashRocket: null, levelup: null, rivalAppear: null, rivalPass: null, bossPass: null,
+        pauseIn: null, pauseOut: null, clear: null
     };
 
-    if (audioSE.horseRun) {
-        audioSE.horseRun.loop = true;
-        audioSE.horseRun.volume = 0.3; 
+    // ----------------------------------------------------------
+    // ▼ 一括アセットプリローダー（非同期ロードシステム） ▼
+    // ----------------------------------------------------------
+    async function preloadAllAssets() {
+        const imageAssets = [
+            { type: 'playerRun', urls: PLAYER_RUN_URLS, target: playerImages.run },
+            { type: 'playerJump', url: PLAYER_JUMP_URL, target: playerImages.jump },
+            { type: 'syapuRun', urls: SYAPUFURA_RUN_URLS, target: syapufuraImages.run },
+            { type: 'syapuJump', url: SYAPUFURA_JUMP_URL, target: syapufuraImages.jump },
+            { type: 'ototoRun', urls: OTOTO_RUN_URLS, target: ototoImages.run },
+            { type: 'ototoJump', url: OTOTO_JUMP_URL, target: ototoImages.jump },
+            { type: 'kojiRun', urls: KOJITATSU_RUN_URLS, target: kojitatsuImages.run },
+            { type: 'kojiJump', url: KOJITATSU_JUMP_URL, target: kojitatsuImages.jump },
+            { type: 'sun', url: SUN_IMG_URL, target: sunImage },
+            { type: 'moon', url: MOON_IMG_URL, target: moonImage }
+        ];
+
+        const audioAssets = [
+            { key: 'horseRun', url: SE_HORSE_RUN_URL },
+            { key: 'button', url: SE_BUTTON_URL },
+            { key: 'jump', url: SE_JUMP_URL },
+            { key: 'stomp', url: SE_STOMP_URL },
+            { key: 'fall', url: SE_FALL_URL },
+            { key: 'warning', url: SE_WARNING_URL },
+            { key: 'flyBird', url: SE_FLY_BIRD_URL },
+            { key: 'flyPlane', url: SE_FLY_PLANE_URL },
+            { key: 'flyRocket', url: SE_FLY_ROCKET_URL },
+            { key: 'crashBird', url: SE_CRASH_BIRD_URL },
+            { key: 'crashPlane', url: SE_CRASH_PLANE_URL },
+            { key: 'crashRocket', url: SE_CRASH_ROCKET_URL },
+            { key: 'levelup', url: SE_LEVELUP_URL },
+            { key: 'rivalAppear', url: SE_RIVAL_APPEAR_URL },
+            { key: 'rivalPass', url: SE_RIVAL_PASS_URL },
+            { key: 'bossPass', url: SE_BOSS_PASS_URL },
+            { key: 'pauseIn', url: SE_PAUSE_IN_URL },
+            { key: 'pauseOut', url: SE_PAUSE_OUT_URL },
+            { key: 'clear', url: SE_CLEAR_URL }
+        ];
+
+        // 総アセット数の計算
+        let total = 0;
+        imageAssets.forEach(asset => {
+            if (asset.urls) total += asset.urls.length;
+            else total += 1;
+        });
+        total += audioAssets.length;
+
+        let loaded = 0;
+
+        function updateProgress() {
+            loaded++;
+            const pct = Math.min(100, Math.floor((loaded / total) * 100));
+            document.getElementById('loadingBar').style.width = pct + '%';
+            document.getElementById('loadingProgress').innerText = pct + '% (' + loaded + ' / ' + total + ')';
+        }
+
+        // 画像のプロミス生成ヘルパー
+        function loadImagePromise(url, targetImgObj) {
+            return new Promise((resolve) => {
+                targetImgObj.onload = () => { updateProgress(); resolve(); };
+                targetImgObj.onerror = () => { updateProgress(); resolve(); }; // 読み込み失敗でも進行を妨げない
+                targetImgObj.src = url;
+            });
+        }
+
+        // 音声のプロミス生成ヘルパー (モバイル端末の非アクティブロード制限考慮)
+        function loadAudioPromise(key, url) {
+            return new Promise((resolve) => {
+                const audio = new Audio();
+                
+                // canplaythrough が発火しないブラウザ対策のタイムアウト(最大1.2秒)
+                const timer = setTimeout(() => {
+                    audioSE[key] = audio;
+                    updateProgress();
+                    resolve();
+                }, 1200);
+
+                audio.addEventListener('canplaythrough', () => {
+                    clearTimeout(timer);
+                    audioSE[key] = audio;
+                    updateProgress();
+                    resolve();
+                }, { once: true });
+
+                audio.addEventListener('error', () => {
+                    clearTimeout(timer);
+                    updateProgress();
+                    resolve(); // エラーでも止まらないようにする
+                }, { once: true });
+
+                audio.src = url;
+                audio.load();
+            });
+        }
+
+        const promises = [];
+
+        // 画像ロードの登録
+        imageAssets.forEach(asset => {
+            if (asset.urls) {
+                asset.urls.forEach((url, i) => {
+                    const img = new Image();
+                    asset.target[i] = img;
+                    promises.push(loadImagePromise(url, img));
+                });
+            } else {
+                promises.push(loadImagePromise(asset.url, asset.target));
+            }
+        });
+
+        // 音声ロードの登録
+        audioAssets.forEach(asset => {
+            promises.push(loadAudioPromise(asset.key, asset.url));
+        });
+
+        await Promise.all(promises);
+
+        // 走行音ループ、ボリュームなどの初期設定
+        if (audioSE.horseRun) {
+            audioSE.horseRun.loop = true;
+            audioSE.horseRun.volume = 0.3; 
+        }
+
+        // ロード画面を隠し、タイトルを表示してゲームループを開始
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('titleScoreBox').style.display = 'block';
+        initTitleScreen();
     }
 
     function playSound(audioObj) {
@@ -423,7 +529,7 @@
         initTitleScreen(); 
     });
 
-    let gameState = 'TITLE';
+    let gameState = 'LOADING'; // 初回読み込みフェーズ
     let clickEffects = [];
     let playerJumpEffects = []; 
     let titleTouchTimer = null; 
@@ -538,12 +644,9 @@
         }
     };
 
-    // ----------------------------------------------------------
-    // ▼ 物理挙動パラメータの調整 (ふわっとしたジャンプ) ▼
-    // ----------------------------------------------------------
-    const BASE_GRAVITY = 0.28;      // 重力を小さくして落下速度を遅く (旧: 0.6)
-    const JUMP_POWER = -6.8;       // 重力低下に伴い、跳躍力もバランス調整 (旧: -8.5)
-    const STOMP_POWER = 12;        // 急降下はメリハリをつけるため速めに (旧: 9)
+    const BASE_GRAVITY = 0.28;      
+    const JUMP_POWER = -6.8;       
+    const STOMP_POWER = 12;        
     const HITBOX_W = 60; 
     const HITBOX_H = 40;
     const TARGET_X = 200; 
@@ -553,14 +656,10 @@
     let platforms = [], mountains = [], birds = []; 
     let levelUpTimer = 0, activeRival = null, inGameMsgTimer = 0;
 
-    // 初期最大ジャンプ数を2回に設定
     const player = { x: -100, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, jumpCount: 0, maxJumps: 2, oldY: 200, images: playerImages };
     let npcs = []; 
     let birdEvent = { active: false, timer: 0, targetY: 0, cooldown: 180, type: 'bird' };
 
-    // ----------------------------------------------------------
-    // ▼ スコアによる難易度・最大ジャンプ回数の変化設計 ▼
-    // ----------------------------------------------------------
     function calculateLevelData(currentScore) {
         let level, speed, maxJumps;
         if (currentScore < 500) { level = 1; speed = 3.8; maxJumps = 2; }
@@ -572,7 +671,6 @@
         else {
             let step = Math.floor((currentScore - 5000) / 1500); 
             level = 7 + step; speed = 6.2 + (step * 0.4);
-            // レベル7以降はさらに最大10までジャンプ数が段階的に増加
             maxJumps = Math.min(10, 7 + step);              
         }
         return { level, speed, jumps: maxJumps };
@@ -610,12 +708,14 @@
     }
 
     function doStartOrRetry() {
+        if (gameState === 'LOADING') return; // ロード中は決定不可
         playSound(audioSE.button);
         if (gameState === 'TITLE') showInstruction();
         else if (gameState === 'INSTRUCTION' || gameState === 'GAMEOVER') startGame();
     }
 
     function addClickEffect(clientX, clientY) {
+        if (gameState === 'LOADING') return;
         const rect = canvas.getBoundingClientRect();
         const x = (clientX - rect.left) * (canvas.width / rect.width);
         const y = (clientY - rect.top) * (canvas.height / rect.height);
@@ -623,6 +723,7 @@
     }
 
     window.addEventListener('keydown', (e) => {
+        if (gameState === 'LOADING') return;
         const key = e.key.toLowerCase();
         if (key === 'e' && gameState === 'TITLE') { tryResetHighScore(); return; }
         if (key === 'f') doJump();
@@ -637,6 +738,7 @@
     });
 
     window.addEventListener('touchstart', (e) => {
+        if (gameState === 'LOADING') return;
         if(e.target.tagName === 'BUTTON') return;
         e.preventDefault();
         const touchX = e.touches[0].clientX, touchY = e.touches[0].clientY;
@@ -654,6 +756,7 @@
     }, { passive: false });
 
     window.addEventListener('mousedown', (e) => {
+        if (gameState === 'LOADING') return;
         if(e.target.tagName === 'BUTTON') return;
         const clickX = e.clientX, clickY = e.clientY;
         if (clickY < window.innerHeight * 0.15 && (gameState === 'PLAYING' || gameState === 'PAUSE')) { togglePause(); return; }
@@ -757,7 +860,7 @@
     function startGame() {
         gameState = 'PLAYING';
         let initialData = calculateLevelData(0);
-        currentLevel = initialData.level; gameSpeed = initialData.speed; player.maxJumps = initialData.jumps; // 最初は2回からスタート
+        currentLevel = initialData.level; gameSpeed = initialData.speed; player.maxJumps = initialData.jumps; 
         
         score = 0; visualScore = 0; frameCount = 0; levelUpTimer = 0; clickEffects = []; playerJumpEffects = [];
         hasPassedRainbow = false; rainbowTimer = 0;
@@ -893,8 +996,6 @@
         const newData = calculateLevelData(score);
         if (newData.level > currentLevel) {
             currentLevel = newData.level; gameSpeed = newData.speed;
-            
-            // 最大ジャンプ数が増えたかどうかに応じてメッセージを分岐
             if (player.maxJumps < newData.jumps) { 
                 levelUpSub.innerText = "スピードUP & ジャンプ回数追加！"; 
                 levelUpSub.style.color = "#fff"; 
@@ -902,7 +1003,6 @@
                 levelUpSub.innerText = "スピードUP！"; 
                 levelUpSub.style.color = "#f1c40f"; 
             }
-            
             player.maxJumps = newData.jumps; 
             updateLevelUI(); updateJumpUI(); levelUpTimer = 120;
             playSound(audioSE.levelup);
@@ -910,6 +1010,7 @@
     }
 
     function update() {
+        if (gameState === 'LOADING') return; // アセット読み込み完了まで処理しない
         if (gameState === 'PAUSE') return; 
         frameCount++;
 
@@ -1102,7 +1203,8 @@
         platforms.forEach(pf => {
             pf.x -= gameSpeed;
             const px = player.x, pw = player.w;
-            if (px < pf.x + pf.w && px + pw > px) {
+            // ▼ キャラクターが宙に浮く不具合の修正：右側境界条件を (px + pw > pf.x) に修正しました (typo: px + pw > px から修正)
+            if (px < pf.x + pf.w && px + pw > pf.x) {
                 if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
                     player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
                     if (player.jumpCount > 0) { player.jumpCount = 0; updateJumpUI(); }
@@ -1117,7 +1219,6 @@
 
         if (birdEvent.cooldown > 0) birdEvent.cooldown--;
 
-        // 障害物の発生頻度（確率：0.002）
         if (!birdEvent.active && birdEvent.cooldown <= 0 && score > 200) {
             if (Math.random() < 0.002) { 
                 playSound(audioSE.warning);
@@ -1141,7 +1242,6 @@
             }
         }
 
-        // 警告から障害物の出現までの待機フレーム（150フレーム ＝ 約2.5秒）
         if (birdEvent.active) {
             birdEvent.timer++; warningDisplay.style.display = 'block';
             if (birdEvent.timer > 150) { 
@@ -1432,6 +1532,13 @@
     }
 
     function draw() {
+        if (gameState === 'LOADING') {
+            // アセットロード中はキャンバスの背景塗りつぶしのみ行う
+            ctx.fillStyle = "#111";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
         updateEnvironment();
 
         // 1. 背景グラデーション
@@ -1569,7 +1676,9 @@
 
     function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
 
-    initTitleScreen(); requestAnimationFrame(gameLoop);
+    // 開始と同時にプリロード処理を呼び出します
+    preloadAllAssets();
+    requestAnimationFrame(gameLoop);
 
 </script>
 </body>
