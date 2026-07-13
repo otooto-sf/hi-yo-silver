@@ -137,7 +137,7 @@
             border-radius: 4px;
         }
 
-        /* 縦画面用デザイン調整（ボタンをより小さく調整） */
+        /* 縦画面用デザイン調整 */
         @media (max-aspect-ratio: 1/1) {
             #btnShowRanking {
                 font-size: 10px;
@@ -558,7 +558,7 @@
     // ----------------------------------------------------------
     const gameContainer = document.getElementById('gameContainer');
     const btnFullscreen = document.getElementById('btnFullscreen');
-    let isSimulatedFullscreen = false; // iOS Safari等の代替表示フラグ
+    let isSimulatedFullscreen = false; 
 
     function simulateFullscreen(enable) {
         if (enable) {
@@ -567,7 +567,7 @@
             gameContainer.style.top = '0';
             gameContainer.style.left = '0';
             gameContainer.style.width = '100vw';
-            gameContainer.style.height = '100dvh'; // 安全な可視高さいっぱいに広げる
+            gameContainer.style.height = '100dvh'; 
             gameContainer.style.zIndex = '9999';
             btnFullscreen.innerText = "EXIT FULLSCREEN";
             btnFullscreen.style.backgroundColor = "#e74c3c";
@@ -593,22 +593,18 @@
                              document.msFullscreenElement;
 
         if (!isFullscreen && !isSimulatedFullscreen) {
-            // フルスクリーン化を試みる
             try {
                 if (gameContainer.requestFullscreen) {
                     gameContainer.requestFullscreen();
                 } else if (gameContainer.webkitRequestFullscreen) {
-                    gameContainer.webkitRequestFullscreen(); // iOS / Safari
+                    gameContainer.webkitRequestFullscreen(); 
                 } else {
-                    // 非対応ブラウザなら擬似フルスクリーンを適用
                     simulateFullscreen(true);
                 }
             } catch (e) {
-                // 例外エラーを検知した場合（iPhone等）も擬似フルスクリーンにフォールバック
                 simulateFullscreen(true);
             }
         } else {
-            // フルスクリーン解除
             try {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
@@ -620,7 +616,7 @@
             } catch (e) {
                 simulateFullscreen(false);
             }
-            simulateFullscreen(false); // 擬似フルスクリーンの状態も確実に解除
+            simulateFullscreen(false); 
         }
     }
 
@@ -1437,7 +1433,7 @@
         platforms.forEach(pf => {
             pf.x -= gameSpeed;
             const px = player.x, pw = player.w;
-            // ▼ 衝突右側境界判定を正確に修正（px + pw > pf.x）
+            // ▼ プレイヤーキャラクターのすり抜け・落下即死を防ぐため、衝突右側境界判定を正確に維持（px + pw > pf.x）
             if (px < pf.x + pf.w && px + pw > pf.x) {
                 if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
                     player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
@@ -1553,6 +1549,18 @@
         if (frameCount % 10 === 0) { 
             score += 10; 
             checkLevelUp(); 
+        }
+        
+        // ▼ 消失していた「レベルアップ画面」および「文字割り込み」のタイマー加算処理を復元しました
+        if (levelUpTimer > 0) { 
+            levelUpTimer--; 
+            levelUpMessage.style.display = 'block'; 
+        } else {
+            levelUpMessage.style.display = 'none';
+        }
+        if (inGameMsgTimer > 0) { 
+            inGameMsgTimer--; 
+            if (inGameMsgTimer === 0) inGameMessage.style.display = 'none'; 
         }
         
         scoreDisplay.innerText = `SCORE: ${score}`;
@@ -1733,7 +1741,7 @@
                 let r = size;
                 ctx.beginPath(); ctx.arc(x - r*0.3, y - r*0.2, r*0.15, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + r*0.4, y + r*0.1, r*0.2, 0, Math.PI*2); ctx.fill();
-                // コロン（;）をカンマ（,）に適切に修正しました
+                // 構文エラーを修正しました (セミコロンをカンマに修正)
                 ctx.beginPath(); ctx.arc(x - r*0.1, y + r*0.4, r*0.1, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + r*0.2, y - r*0.4, r*0.12, 0, Math.PI*2); ctx.fill();
             }
