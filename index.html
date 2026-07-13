@@ -8,45 +8,34 @@
         body {
             margin: 0; padding: 0; background-color: #111;
             display: flex; justify-content: center; align-items: center;
-            height: 100vh;
-            height: 100dvh; /* iOS Safari等のツールバーを考慮した可視領域高さ */
-            font-family: 'Courier New', Courier, monospace;
+            height: 100vh; font-family: 'Courier New', Courier, monospace;
             overflow: hidden; user-select: none; touch-action: none; 
         }
-        /* アスペクト比を維持して画面内に完全に収めるコンテナ */
         #gameContainer {
-            position: relative; 
-            aspect-ratio: 16 / 9;
-            width: 100%; 
-            max-width: 100%; 
-            max-height: 100%; 
-            background-color: #000; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s ease;
+            position: relative; width: 100vw; height: 56.25vw; 
+            max-height: 100vh; max-width: 177.77vh; 
+            background-color: #000; box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
         canvas { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
         #uiLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         #playingUI { display: none; }
         
         .score-box { position: absolute; top: 3%; right: 3%; text-align: right; text-shadow: 2px 2px 0 #000; pointer-events: auto; }
-        #scoreDisplay { font-size: clamp(14px, 3vw, 24px); color: white; font-weight: bold; }
-        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(10px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
+        #scoreDisplay { font-size: clamp(16px, 3vw, 24px); color: white; font-weight: bold; }
+        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(12px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
 
         #leftUIBox { position: absolute; top: 3%; left: 3%; pointer-events: auto; }
-        #levelDisplay { font-size: clamp(14px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
-        #jumpDisplay { font-size: clamp(10px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
+        #levelDisplay { font-size: clamp(16px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+        #jumpDisplay { font-size: clamp(12px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
 
         .center-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
 
-        #titleScreen { display: none; top: 35%; }
+        #titleScreen { display: block; top: 35%; }
         #titleScreen h1 {
-            color: #fff; font-size: clamp(28px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
+            color: #fff; font-size: clamp(32px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
             text-shadow: 4px 4px 0 #e74c3c, -2px -2px 0 #3498db; font-style: italic; white-space: nowrap;
         }
-        .blink { color: #fff; font-size: clamp(14px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
+        .blink { color: #fff; font-size: clamp(16px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
         @keyframes blinker { 50% { opacity: 0; } }
 
         #instructionScreen {
@@ -54,8 +43,8 @@
             border-radius: 12px; border: 2px solid #3498db; width: 85%; max-width: 700px;
             box-sizing: border-box; backdrop-filter: blur(2px);
         }
-        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(20px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
-        #instructionScreen p.desc { color: white; font-size: clamp(12px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
+        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(24px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
+        #instructionScreen p.desc { color: white; font-size: clamp(14px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
 
         #levelUpMessage {
             display: none; font-size: clamp(24px, 5vw, 36px); color: #00ffff; font-weight: bold;
@@ -69,7 +58,7 @@
         }
 
         #warningDisplay {
-            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(18px, 4vw, 28px); color: #ff3333;
+            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(20px, 4vw, 28px); color: #ff3333;
             font-weight: bold; text-shadow: 2px 2px 0 #000, 0 0 10px #ff0000; animation: fastblink 0.15s infinite alternate;
         }
         @keyframes fastblink { from { opacity: 1; transform: scale(1); } to { opacity: 0.2; transform: scale(1.05); } }
@@ -81,7 +70,7 @@
             display: none; background: rgba(0, 0, 0, 0.9); padding: 25px 20px; border-radius: 8px;
             border: 2px solid #ff5252; width: 90%; max-width: 800px; box-sizing: border-box; pointer-events: auto; z-index: 300;
         }
-        #gameOverScreen h1 { color: #ff5252; margin: 0 0 10px 0; font-size: clamp(24px, 6vw, 48px); white-space: nowrap; }
+        #gameOverScreen h1 { color: #ff5252; margin: 0 0 10px 0; font-size: clamp(28px, 6vw, 48px); white-space: nowrap; }
 
         @keyframes pulseScale { from { transform: scale(1); } to { transform: scale(1.1); } }
         #newRecordMsg { display: none; color: #f1c40f; font-weight: bold; font-size: clamp(14px, 4vw, 28px); margin: 5px 0; white-space: nowrap; animation: pulseScale 0.5s ease infinite alternate; }
@@ -103,7 +92,7 @@
         .btn { background-color: #3498db; color: white; border: 2px solid #fff; padding: 12px 24px; font-size: clamp(12px, 3vw, 20px); font-family: 'Courier New', Courier, monospace; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 2px 2px 0 #000; white-space: nowrap; }
         .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 
-        .instruction { position: absolute; bottom: 3%; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.6); font-size: clamp(8px, 2vw, 14px); text-shadow: 1px 1px 0 #000; }
+        .instruction { position: absolute; bottom: 3%; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.6); font-size: clamp(10px, 2vw, 14px); text-shadow: 1px 1px 0 #000; }
 
         #loadingScreen { display: block; text-align: center; }
 
@@ -122,8 +111,8 @@
             border-radius: 4px;
         }
 
-        /* 縦画面用デザイン調整 */
-        @media (max-aspect-ratio: 1/1) {
+        /* 縦画面用のデザイン調整 */
+        @media (max-width: 600px) {
             #btnShowRanking {
                 font-size: 10px;
                 padding: 4px 8px;
@@ -1258,7 +1247,12 @@
         if (gameState === 'TITLE' || gameState === 'INSTRUCTION') {
             mountains.forEach(m => { m.x -= TITLE_SPEED * 0.15; if (m.x + m.w < 0) m.x = canvas.width + Math.random() * 100; });
             platforms.forEach(pf => pf.x -= TITLE_SPEED);
-            if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) platforms.shift();
+            
+            // ▼ タイトル画面中の古い足場の破棄処理を追加（メモリリークの解消により重さが100%消え去ります）
+            if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) {
+                platforms.shift();
+            }
+            
             generatePlatforms(TITLE_SPEED, 2, true);
 
             npcs.forEach((npc, index) => {
@@ -1315,7 +1309,7 @@
         platforms.forEach(pf => {
             pf.x -= gameSpeed;
             const px = player.x, pw = player.w;
-            // ▼ プレイヤーキャラクターのすり抜け・落下即死を防ぐため、衝突右側境界判定を正確に維持（px + pw > pf.x）
+            // ▼ プレイヤーキャラクターの衝突右側境界判定を正確に維持（px + pw > pf.x）
             if (px < pf.x + pf.w && px + pw > pf.x) {
                 if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
                     player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
@@ -1326,7 +1320,10 @@
             }
         });
 
-        if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) platforms.shift();
+        // プレイ中の古い足場の破棄
+        if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) {
+            platforms.shift();
+        }
         generatePlatforms(gameSpeed, player.maxJumps);
 
         if (birdEvent.cooldown > 0) birdEvent.cooldown--;
@@ -1623,7 +1620,6 @@
                 let r = size;
                 ctx.beginPath(); ctx.arc(x - r*0.3, y - r*0.2, r*0.15, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + r*0.4, y + r*0.1, r*0.2, 0, Math.PI*2); ctx.fill();
-                // 構文エラーを確実にカンマ（,）に修正・安定化しました
                 ctx.beginPath(); ctx.arc(x - r*0.1, y + r*0.4, r*0.1, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + r*0.2, y - r*0.4, r*0.12, 0, Math.PI*2); ctx.fill();
             }
