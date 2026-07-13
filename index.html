@@ -21,21 +21,21 @@
         #playingUI { display: none; }
         
         .score-box { position: absolute; top: 3%; right: 3%; text-align: right; text-shadow: 2px 2px 0 #000; pointer-events: auto; }
-        #scoreDisplay { font-size: clamp(16px, 3vw, 24px); color: white; font-weight: bold; }
-        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(12px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
+        #scoreDisplay { font-size: clamp(14px, 3vw, 24px); color: white; font-weight: bold; }
+        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(10px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
 
         #leftUIBox { position: absolute; top: 3%; left: 3%; pointer-events: auto; }
-        #levelDisplay { font-size: clamp(16px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
-        #jumpDisplay { font-size: clamp(12px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
+        #levelDisplay { font-size: clamp(14px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+        #jumpDisplay { font-size: clamp(10px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
 
         .center-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
 
-        #titleScreen { display: block; top: 35%; }
+        #titleScreen { display: none; top: 35%; }
         #titleScreen h1 {
-            color: #fff; font-size: clamp(32px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
+            color: #fff; font-size: clamp(28px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
             text-shadow: 4px 4px 0 #e74c3c, -2px -2px 0 #3498db; font-style: italic; white-space: nowrap;
         }
-        .blink { color: #fff; font-size: clamp(16px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
+        .blink { color: #fff; font-size: clamp(14px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
         @keyframes blinker { 50% { opacity: 0; } }
 
         #instructionScreen {
@@ -43,8 +43,8 @@
             border-radius: 12px; border: 2px solid #3498db; width: 85%; max-width: 700px;
             box-sizing: border-box; backdrop-filter: blur(2px);
         }
-        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(24px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
-        #instructionScreen p.desc { color: white; font-size: clamp(14px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
+        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(20px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
+        #instructionScreen p.desc { color: white; font-size: clamp(12px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
 
         #levelUpMessage {
             display: none; font-size: clamp(24px, 5vw, 36px); color: #00ffff; font-weight: bold;
@@ -58,7 +58,7 @@
         }
 
         #warningDisplay {
-            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(20px, 4vw, 28px); color: #ff3333;
+            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(18px, 4vw, 28px); color: #ff3333;
             font-weight: bold; text-shadow: 2px 2px 0 #000, 0 0 10px #ff0000; animation: fastblink 0.15s infinite alternate;
         }
         @keyframes fastblink { from { opacity: 1; transform: scale(1); } to { opacity: 0.2; transform: scale(1.05); } }
@@ -70,7 +70,7 @@
             display: none; background: rgba(0, 0, 0, 0.9); padding: 25px 20px; border-radius: 8px;
             border: 2px solid #ff5252; width: 90%; max-width: 800px; box-sizing: border-box; pointer-events: auto; z-index: 300;
         }
-        #gameOverScreen h1 { color: #ff5252; margin: 0 0 10px 0; font-size: clamp(28px, 6vw, 48px); white-space: nowrap; }
+        #gameOverScreen h1 { color: #ff5252; margin: 0 0 10px 0; font-size: clamp(24px, 6vw, 48px); white-space: nowrap; }
 
         @keyframes pulseScale { from { transform: scale(1); } to { transform: scale(1.1); } }
         #newRecordMsg { display: none; color: #f1c40f; font-weight: bold; font-size: clamp(14px, 4vw, 28px); margin: 5px 0; white-space: nowrap; animation: pulseScale 0.5s ease infinite alternate; }
@@ -1248,7 +1248,7 @@
             mountains.forEach(m => { m.x -= TITLE_SPEED * 0.15; if (m.x + m.w < 0) m.x = canvas.width + Math.random() * 100; });
             platforms.forEach(pf => pf.x -= TITLE_SPEED);
             
-            // ▼ タイトル画面中の古い足場の破棄処理を追加（メモリリークの解消により重さが100%消え去ります）
+            // タイトル画面中の古い足場の破棄処理を追加（メモリリークの解消）
             if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) {
                 platforms.shift();
             }
@@ -1309,7 +1309,7 @@
         platforms.forEach(pf => {
             pf.x -= gameSpeed;
             const px = player.x, pw = player.w;
-            // ▼ プレイヤーキャラクターの衝突右側境界判定を正確に維持（px + pw > pf.x）
+            // ▼ プレイヤーキャラクターの衝突判定
             if (px < pf.x + pf.w && px + pw > pf.x) {
                 if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
                     player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
@@ -1671,11 +1671,16 @@
         gradient.addColorStop(0, currentEnv.bgTop); gradient.addColorStop(0.5, currentEnv.bgMid); gradient.addColorStop(1, currentEnv.bgBottom);
         ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // ▼ 背景の星（150個）の描画処理を大幅に高速化（スタイルの指定をループから出して1回に統一）
         if (currentEnv.starA > 0) {
+            ctx.fillStyle = "white"; 
+            ctx.save();
+            ctx.globalAlpha = Math.min(currentEnv.starA, 1);
             stars.forEach(s => {
-                let twinkle = (Math.random() > 0.95) ? 0.3 : 1;
-                ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(currentEnv.starA, 1) * twinkle})`; ctx.fillRect(s.x, s.y, s.size, s.size);
+                if (Math.random() > 0.98) return; // チカチカ演出の間引き処理
+                ctx.fillRect(s.x, s.y, s.size, s.size);
             });
+            ctx.restore();
         }
 
         let isSpace = false;
@@ -1694,11 +1699,16 @@
         }
         ctx.restore();
 
+        // ▼ 山（7つ）の描画処理を高速化（一筆書きの共通輪郭線（パス）を生成して1回の命令で一気に塗りつぶす）
         if (currentEnv.mountainA > 0) {
             ctx.fillStyle = `rgba(40, 20, 15, ${currentEnv.mountainA})`;
+            ctx.beginPath();
             mountains.forEach(m => {
-                ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + m.w / 2, m.y - m.h); ctx.lineTo(m.x + m.w, m.y); ctx.fill();
+                ctx.moveTo(m.x, m.y);
+                ctx.lineTo(m.x + m.w / 2, m.y - m.h);
+                ctx.lineTo(m.x + m.w, m.y);
             });
+            ctx.fill();
         }
 
         platforms.forEach(pf => drawPlatform(pf));
