@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>High-Low Silver!</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #111;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; user-select: none; touch-action: none; 
+        }
+        #gameContainer {
+            position: relative; width: 100vw; height: 56.25vw; 
+            max-height: 100vh; max-width: 177.77vh; 
+            background-color: #000; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        canvas { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+        #uiLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        #playingUI { display: none; }
+        
+        .score-box { position: absolute; top: 3%; right: 3%; text-align: right; text-shadow: 2px 2px 0 #000; pointer-events: auto; }
+        #scoreDisplay { font-size: clamp(16px, 3vw, 24px); color: white; font-weight: bold; }
+        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(12px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
+
+        #leftUIBox { position: absolute; top: 3%; left: 3%; pointer-events: auto; }
+        #levelDisplay { font-size: clamp(16px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+        #jumpDisplay { font-size: clamp(12px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
+
+        .center-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+
+        #titleScreen { display: block; top: 35%; }
+        #titleScreen h1 {
+            color: #fff; font-size: clamp(32px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #e74c3c, -2px -2px 0 #3498db; font-style: italic; white-space: nowrap;
+        }
+        .blink { color: #fff; font-size: clamp(16px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        #instructionScreen {
+            display: none; background: rgba(0, 0, 0, 0.7); padding: 4% 8%;
+            border-radius: 12px; border: 2px solid #3498db; width: 85%; max-width: 700px;
+            box-sizing: border-box; backdrop-filter: blur(2px);
+        }
+        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(24px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
+        #instructionScreen p.desc { color: white; font-size: clamp(14px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
+
+        #levelUpMessage {
+            display: none; font-size: clamp(24px, 5vw, 36px); color: #00ffff; font-weight: bold;
+            text-shadow: 3px 3px 0 #000, 0 0 15px #00ffff; animation: bounceCenter 0.5s ease infinite alternate; z-index: 50;
+        }
+        @keyframes bounceCenter { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
+
+        #inGameMessage {
+            display: none; font-size: clamp(24px, 5vw, 40px); font-weight: bold; text-shadow: 3px 3px 0 #000, -1px -1px 0 #fff;
+            animation: bounceCenter 0.5s ease infinite alternate; z-index: 100; top: 40%;
+        }
+
+        #warningDisplay {
+            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(20px, 4vw, 28px); color: #ff3333;
+            font-weight: bold; text-shadow: 2px 2px 0 #000, 0 0 10px #ff0000; animation: fastblink 0.15s infinite alternate;
+        }
+        @keyframes fastblink { from { opacity: 1; transform: scale(1); } to { opacity: 0.2; transform: scale(1.05); } }
+
+        #pauseScreen { display: none; background: rgba(0, 0, 0, 0.6); width: 100%; height: 100%; position: absolute; top: 0; left: 0; pointer-events: none; z-index: 200; }
+        #pauseScreen h1 { color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: clamp(32px, 6vw, 64px); letter-spacing: 5px; margin: 0; text-shadow: 2px 2px 0 #000; }
+
+        #gameOverScreen {
+            display: none; background: rgba(0, 0, 0, 0.85); padding: 30px 20px; border-radius: 8px;
+            border: 2px solid #ff5252; width: 90%; max-width: 800px; box-sizing: border-box; pointer-events: auto; z-index: 300;
+        }
+        #gameOverScreen h1 { color: #ff5252; margin-top: 0; font-size: clamp(28px, 6vw, 48px); white-space: nowrap; }
+
+        @keyframes pulseScale { from { transform: scale(1); } to { transform: scale(1.1); } }
+        #newRecordMsg { display: none; color: #f1c40f; font-weight: bold; font-size: clamp(16px, 4vw, 28px); margin: 10px 0; white-space: nowrap; animation: pulseScale 0.5s ease infinite alternate; }
+        .go-info { font-size: clamp(18px, 4vw, 32px); color: white; font-weight: bold; margin: 10px 0; white-space: nowrap; }
+        
+        #rivalDefeatMsg, #syapufurarMsg { display: none; font-weight: bold; font-size: clamp(18px, 4vw, 28px); margin: 10px 0; text-shadow: 2px 2px 0 #000; animation: pulseScale 0.5s ease infinite alternate; }
+        
+        #smallStepMsg {
+            display: none;
+            color: #ecf0f1;
+            font-size: clamp(16px, 3vw, 24px);
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            letter-spacing: 5px;
+            margin-top: 0px;
+            margin-bottom: 25px;
+            text-shadow: 0 0 5px #3498db, 0 0 10px #2980b9, 0 0 20px #2980b9, 2px 2px 0 #000;
+            animation: fadeInGlow 2s ease-in-out forwards;
+        }
+
+        @keyframes fadeInGlow {
+            0% { opacity: 0; transform: translateY(10px); filter: brightness(0.5); }
+            100% { opacity: 1; transform: translateY(0); filter: brightness(1.2); }
+        }
+
+        .btn-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
+        .btn { background-color: #3498db; color: white; border: 2px solid #fff; padding: 12px 24px; font-size: clamp(14px, 3vw, 20px); font-family: 'Courier New', Courier, monospace; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 2px 2px 0 #000; white-space: nowrap; }
+        .btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
+        .instruction { position: absolute; bottom: 3%; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.6); font-size: clamp(10px, 2vw, 14px); text-shadow: 1px 1px 0 #000; }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+    <div id="uiLayer">
+        <div id="titleScreen" class="center-msg">
+            <h1>High-Low Silver!</h1>
+            <p class="blink">TAP OR PRESS SPACE TO START</p>
+        </div>
+        <div id="titleScoreBox" class="score-box"><div id="highScoreDisplayTitle">HIGH SCORE: 0</div></div>
+        <div id="instructionScreen" class="center-msg">
+            <h2>HOW TO PLAY</h2>
+            <p class="desc">
+                <span style="color:#3498db; font-weight:bold;">【PC】</span><br>[F]キー : ジャンプ<br>[S]キー : 急降下<br>[Space] : 一時停止 / 再開<br><br>
+                <span style="color:#e74c3c; font-weight:bold;">【スマホ】</span><br>右半分タップ : ジャンプ<br>左半分タップ : 急降下<br>上部タップ : 一時停止 / 再開
+            </p>
+            <p class="blink" style="font-size: clamp(12px, 2.5vw, 16px); color: #ccc;">TAP OR PRESS SPACE TO START GAME</p>
+        </div>
+        <div id="playingUI">
+            <div id="leftUIBox"><div id="levelDisplay">LEVEL: 1</div><div id="jumpDisplay">JUMP: 0 / 2</div></div>
+            <div class="score-box"><div id="highScoreDisplayPlay">HIGH SCORE: 0</div><div id="scoreDisplay">SCORE: 0</div></div>
+            <div id="warningDisplay">⚠️ WARNING!</div>
+            <div class="instruction">【PC】F: ジャンプ / S: 急降下 / Space: 停止・再開<br>【スマホ】右: ジャンプ / 左: 急降下 / 上部: 停止・再開</div>
+        </div>
+        <div id="pauseScreen"><h1 class="blink">PAUSE</h1></div>
+        <div id="levelUpMessage" class="center-msg">LEVEL UP!<br><span id="levelUpSub" style="font-size:60%; color:#fff;">スピードUP & ジャンプ回数追加！</span></div>
+        <div id="inGameMessage" class="center-msg"></div>
+        <div id="gameOverScreen" class="center-msg">
+            <h1 id="deathCause">GAME OVER</h1>
+            <p id="newRecordMsg">🔥 NEW HIGH SCORE! 🔥</p>
+            <p id="syapufurarMsg">👑 月に到着した！あなたは最速のしゃぷふらーだ！ 👑</p>
+            <p id="smallStepMsg">A SMALL STEP FOR A COWBOY</p>
+            <p id="rivalDefeatMsg">🎉 ○○を超えた！ 🎉</p>
+            <p id="finalLevelDisplay" class="go-info">LEVEL: 1</p>
+            <p id="finalScore" class="go-info">SCORE: 0</p>
+            <div class="btn-container">
+                <button class="btn" id="btnRetry">RETRY [Spc]</button>
+                <button class="btn" id="btnTitle" style="background-color: #e67e22;">TITLE [T]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEBUG_INFINITE_JUMP = false; 
+
+    // ==========================================================
+    // ▼ キャラクター＆天体の画像 URL 設定 ▼
+    // ローカルで使用する場合、htmlファイルと同じ階層に置いた相対パスも指定可能です。
+    // ==========================================================
+    const PLAYER_RUN_URLS = [
+        "images/player_run0.png",
+        "images/player_run1.png",
+        "images/player_run2.png",
+        "images/player_run3.png",
+        "images/player_run4.png",
+        "images/player_run5.png",
+        "images/player_run6.png"
+    ]; 
+    const PLAYER_JUMP_URL = "images/player_jump.png";
+
+    const SYAPUFURA_RUN_URLS = [
+        "images/syapufura_run0.png",
+        "images/syapufura_run1.png",
+        "images/syapufura_run2.png",
+        "images/syapufura_run3.png",
+        "images/syapufura_run4.png",
+        "images/syapufura_run5.png",
+        "images/syapufura_run6.png"
+    ]; 
+    const SYAPUFURA_JUMP_URL = "images/syapufura_jump.png";
+
+    const OTOTO_RUN_URLS = [
+        "images/otooto_run0.png",
+        "images/otooto_run1.png",
+        "images/otooto_run2.png",
+        "images/otooto_run3.png",
+        "images/otooto_run4.png",
+        "images/otooto_run5.png",
+        "images/otooto_run6.png"
+    ];
+    const OTOTO_JUMP_URL = "images/otooto_jump.png";
+
+    const KOJITATSU_RUN_URLS = [
+        "images/kojitatsu_run0.png",
+        "images/kojitatsu_run1.png",
+        "images/kojitatsu_run2.png",
+        "images/kojitatsu_run3.png",
+        "images/kojitatsu_run4.png",
+        "images/kojitatsu_run5.png",
+        "images/kojitatsu_run6.png"
+    ];
+    const KOJITATSU_JUMP_URL = "images/kojitatsu_jump.png";
+
+    const SUN_IMG_URL = "images/sun.png"; 
+    const MOON_IMG_URL = "images/moon.png"; 
+
+    // ==========================================================
+    // ▼ 効果音の URL 設定 ▼
+    // ==========================================================
+    const SE_HORSE_RUN_URL    = "sounds/horse_run.mp3";    // 走行音（馬）
+    const SE_BUTTON_URL       = "sounds/button.mp3";       // UI決定
+    const SE_JUMP_URL         = "sounds/jump.mp3";         // ジャンプ
+    const SE_STOMP_URL        = "sounds/stomp.mp3";        // 急降下
+    const SE_FALL_URL         = "sounds/fall.mp3";         // 落下
+    const SE_WARNING_URL      = "sounds/warning.mp3";      // 警告
+    
+    const SE_FLY_BIRD_URL     = "sounds/fly_bird.mp3";     // 接近・環境音（椋鳥）
+    const SE_FLY_PLANE_URL    = "sounds/fly_plane.mp3";    // 接近・環境音（飛行機）
+    const SE_FLY_ROCKET_URL   = "sounds/fly_rocket.mp3";   // 接近・環境音（ロケット）
+    
+    const SE_CRASH_BIRD_URL   = "sounds/crash_bird.mp3";   // 衝突（椋鳥）
+    const SE_CRASH_PLANE_URL  = "sounds/crash_plane.mp3";  // 衝突（飛行機）
+    const SE_CRASH_ROCKET_URL = "sounds/crash_rocket.mp3"; // 衝突（ロケット）
+    
+    const SE_LEVELUP_URL      = "sounds/levelup.mp3";      // レベルアップ
+    const SE_RIVAL_APPEAR_URL = "sounds/rival_appear.mp3"; // ライバル登場
+    const SE_RIVAL_PASS_URL   = "sounds/rival_pass.mp3";   // 追い抜き（おとーと、こじたつ）
+    const SE_BOSS_PASS_URL    = "sounds/boss_pass.mp3";    // 追い抜き（しゃぷふら）
+    
+    const SE_PAUSE_IN_URL     = "sounds/pause_in.mp3";     // ポーズ
+    const SE_PAUSE_OUT_URL    = "sounds/button.mp3";    // 再開
+    
+    const SE_CLEAR_URL        = "sounds/clear.mp3";        // 特殊クリア演出
+
+    // ==========================================================
+
+    const transparentPixel = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    
+    function createCharImages(runUrls, jumpUrl) {
+        const runImgs = [];
+        for (let i = 0; i < 7; i++) {
+            let img = new Image();
+            img.src = runUrls[i] || transparentPixel;
+            runImgs.push(img);
+        }
+        const jumpImg = new Image(); 
+        jumpImg.src = jumpUrl || transparentPixel;
+        return { run: runImgs, jump: jumpImg };
+    }
+
+    var playerImages = createCharImages(PLAYER_RUN_URLS, PLAYER_JUMP_URL);
+    var syapufuraImages = createCharImages(SYAPUFURA_RUN_URLS, SYAPUFURA_JUMP_URL);
+    var ototoImages = createCharImages(OTOTO_RUN_URLS, OTOTO_JUMP_URL);
+    var kojitatsuImages = createCharImages(KOJITATSU_RUN_URLS, KOJITATSU_JUMP_URL);
+
+    const sunImage = new Image(); if(SUN_IMG_URL) sunImage.src = SUN_IMG_URL;
+    const moonImage = new Image(); if(MOON_IMG_URL) moonImage.src = MOON_IMG_URL;
+
+    function createAudio(url) {
+        if (!url) return null;
+        let audio = new Audio(url);
+        audio.load();
+        return audio;
+    }
+
+    const audioSE = {
+        horseRun: createAudio(SE_HORSE_RUN_URL),
+        button: createAudio(SE_BUTTON_URL),
+        jump: createAudio(SE_JUMP_URL),
+        stomp: createAudio(SE_STOMP_URL),
+        fall: createAudio(SE_FALL_URL),
+        warning: createAudio(SE_WARNING_URL),
+        flyBird: createAudio(SE_FLY_BIRD_URL),
+        flyPlane: createAudio(SE_FLY_PLANE_URL),
+        flyRocket: createAudio(SE_FLY_ROCKET_URL),
+        crashBird: createAudio(SE_CRASH_BIRD_URL),
+        crashPlane: createAudio(SE_CRASH_PLANE_URL),
+        crashRocket: createAudio(SE_CRASH_ROCKET_URL),
+        levelup: createAudio(SE_LEVELUP_URL),
+        rivalAppear: createAudio(SE_RIVAL_APPEAR_URL),
+        rivalPass: createAudio(SE_RIVAL_PASS_URL),
+        bossPass: createAudio(SE_BOSS_PASS_URL),
+        pauseIn: createAudio(SE_PAUSE_IN_URL),
+        pauseOut: createAudio(SE_PAUSE_OUT_URL),
+        clear: createAudio(SE_CLEAR_URL)
+    };
+
+    if (audioSE.horseRun) {
+        audioSE.horseRun.loop = true;
+        audioSE.horseRun.volume = 0.3; 
+    }
+
+    function playSound(audioObj) {
+        if (!audioObj) return;
+        try {
+            let clone = audioObj.cloneNode();
+            clone.play().catch(() => {}); 
+        } catch(e) {}
+    }
+
+    let currentEnv = {};
+    let stars = [];
+    let planets = []; 
+    let visualScore = 0; 
+    let confettis = []; 
+
+    function initStars() {
+        stars = [];
+        for(let i = 0; i < 150; i++){
+            stars.push({ x: Math.random() * 960, y: Math.random() * 540, size: Math.random() * 2 + 1, speed: Math.random() * 0.5 + 0.1 });
+        }
+    }
+    initStars();
+
+    function spawnPlanet() {
+        if (Math.random() < 0.005) { 
+            let types = [
+                { name: 'Mars', color: '#e74c3c' },
+                { name: 'Mercury', color: '#bdc3c7' },
+                { name: 'Jupiter', color: '#d35400', stripe: true },
+                { name: 'Saturn', color: '#f1c40f', ring: true },
+                { name: 'Uranus', color: '#3498db' },
+                { name: 'Neptune', color: '#2980b9' }
+            ];
+            let type = types[Math.floor(Math.random() * types.length)];
+            planets.push({
+                x: canvas.width + 100,
+                y: Math.random() * (canvas.height / 2),
+                r: 20 + Math.random() * 40,
+                type: type,
+                speed: 0.1 + Math.random() * 0.2
+            });
+        }
+    }
+
+    function initConfetti() {
+        confettis = [];
+        for(let i = 0; i < 150; i++) {
+            confettis.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height, 
+                vx: (Math.random() - 0.5) * 3,
+                vy: Math.random() * 3 + 2,
+                color: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6', '#ffffff'][Math.floor(Math.random()*6)],
+                size: Math.random() * 8 + 4,
+                angle: Math.random() * 360,
+                spin: (Math.random() - 0.5) * 10
+            });
+        }
+    }
+
+    function lerp(start, end, t) { return start + (end - start) * Math.min(Math.max(t, 0), 1); }
+
+    function hexToRgb(hex) {
+        if(hex.startsWith('#')) hex = hex.substring(1);
+        if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        let bigint = parseInt(hex, 16);
+        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+    }
+
+    function lerpColor(color1, color2, t) {
+        let rgb1 = hexToRgb(color1); let rgb2 = hexToRgb(color2);
+        let r = Math.round(lerp(rgb1[0], rgb2[0], t)); let g = Math.round(lerp(rgb1[1], rgb2[1], t)); let b = Math.round(lerp(rgb1[2], rgb2[2], t));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    const STAGES = [
+        { score: 0,     bgTop: "#1a2a6c", bgMid: "#b21f1f", bgBottom: "#fdbb2d", sunX: 100, sunY: 100, sunS: 250, sunA: 1, moonX: -100, moonY: 650, moonS: 200, moonA: 0, starA: 0, mountainA: 1 },
+        { score: 5000,  bgTop: "#0f0c29", bgMid: "#302b63", bgBottom: "#24243e", sunX: 850, sunY: 650, sunS: 250, sunA: 0, moonX: 100,  moonY: 650, moonS: 200, moonA: 1, starA: 1, mountainA: 1 },
+        { score: 10000, bgTop: "#050b14", bgMid: "#121b2d", bgBottom: "#1a2639", sunX: 850, sunY: 650, sunS: 250, sunA: 0, moonX: 450,  moonY: 350, moonS: 450, moonA: 1, starA: 1, mountainA: 0 },
+        { score: 14000, bgTop: "#02040a", bgMid: "#080c16", bgBottom: "#0d1320", sunX: 850, sunY: 650, sunS: 250, sunA: 0, moonX: 800,  moonY: 150, moonS: 800, moonA: 1, starA: 1.5, mountainA: 0 },
+        { score: 17999, bgTop: "#000000", bgMid: "#000000", bgBottom: "#050510", sunX: 850, sunY: 650, sunS: 250, sunA: 0, moonX: 480,  moonY: 270, moonS: 1500, moonA: 1, starA: 2, mountainA: 0 },
+        { score: 18000, bgTop: "#000000", bgMid: "#000000", bgBottom: "#000000", sunX: 850, sunY: 650, sunS: 250, sunA: 0, moonX: 480,  moonY: 270, moonS: 1500, moonA: 0, starA: 2.5, mountainA: 0 } 
+    ];
+
+    function updateEnvironment() {
+        let prev = STAGES[0], next = STAGES[STAGES.length - 1];
+        for (let i = 0; i < STAGES.length - 1; i++) {
+            if (visualScore >= STAGES[i].score && visualScore < STAGES[i+1].score) { prev = STAGES[i]; next = STAGES[i+1]; break; }
+        }
+        let t = (next.score > prev.score) ? (visualScore - prev.score) / (next.score - prev.score) : 0;
+        
+        currentEnv.bgTop = lerpColor(prev.bgTop, next.bgTop, t);
+        currentEnv.bgMid = lerpColor(prev.bgMid, next.bgMid, t);
+        currentEnv.bgBottom = lerpColor(prev.bgBottom, next.bgBottom, t);
+        currentEnv.sunX = lerp(prev.sunX, next.sunX, t);
+        currentEnv.sunY = lerp(prev.sunY, next.sunY, t);
+        currentEnv.sunS = lerp(prev.sunS, next.sunS, t);
+        currentEnv.sunA = lerp(prev.sunA, next.sunA, t);
+        currentEnv.moonX = lerp(prev.moonX, next.moonX, t);
+        currentEnv.moonY = lerp(prev.moonY, next.moonY, t);
+        currentEnv.moonS = lerp(prev.moonS, next.moonS, t);
+        currentEnv.moonA = lerp(prev.moonA, next.moonA, t);
+        currentEnv.starA = lerp(prev.starA, next.starA, t);
+        currentEnv.mountainA = lerp(prev.mountainA, next.mountainA, t);
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const titleScreen = document.getElementById('titleScreen');
+    const titleScoreBox = document.getElementById('titleScoreBox');
+    const instructionScreen = document.getElementById('instructionScreen');
+    const playingUI = document.getElementById('playingUI');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const pauseScreen = document.getElementById('pauseScreen');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const highScoreDisplayTitle = document.getElementById('highScoreDisplayTitle');
+    const highScoreDisplayPlay = document.getElementById('highScoreDisplayPlay');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const jumpDisplay = document.getElementById('jumpDisplay');
+    const warningDisplay = document.getElementById('warningDisplay');
+    const levelUpMessage = document.getElementById('levelUpMessage');
+    const levelUpSub = document.getElementById('levelUpSub');
+    const inGameMessage = document.getElementById('inGameMessage');
+    const finalLevelDisplay = document.getElementById('finalLevelDisplay');
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const deathCause = document.getElementById('deathCause');
+    const newRecordMsg = document.getElementById('newRecordMsg');
+    const rivalDefeatMsg = document.getElementById('rivalDefeatMsg');
+    const syapufurarMsg = document.getElementById('syapufurarMsg');
+    const smallStepMsg = document.getElementById('smallStepMsg');
+
+    document.getElementById('btnRetry').addEventListener('click', doStartOrRetry);
+    document.getElementById('btnTitle').addEventListener('click', () => { 
+        playSound(audioSE.button); 
+        initTitleScreen(); 
+    });
+
+    let gameState = 'TITLE';
+    let clickEffects = [];
+    let playerJumpEffects = []; 
+    let titleTouchTimer = null; 
+
+    let rainbowTimer = 0;
+    let hasPassedRainbow = false;
+
+    function applyTextColor(element, color, isGradient) {
+        if (isGradient) {
+            element.style.background = color; element.style.webkitBackgroundClip = 'text';
+            element.style.color = 'transparent'; element.style.textShadow = 'none'; element.style.filter = 'drop-shadow(2px 2px 0px #000)'; 
+        } else {
+            element.style.background = 'none'; element.style.webkitBackgroundClip = 'initial';
+            element.style.color = color; element.style.textShadow = '2px 2px 0 #000'; element.style.filter = 'none';
+        }
+    }
+
+    const RIVAL_TARGETS_DATA = [
+        { name: 'しゃぷふら', score: 18000, appearScore: 12000, color: 'linear-gradient(to right, #E53935, #1976D2)', isGradient: true, imgObj: syapufuraImages }, 
+        { name: 'おとーと',   score: 10000, appearScore: 7000,  color: '#FDD835', isGradient: false, imgObj: ototoImages }, 
+        { name: 'こじたつ',   score: 5000,  appearScore: 3000,  color: '#4CAF50', isGradient: false, imgObj: kojitatsuImages }  
+    ];
+
+    let highScore = localStorage.getItem('highLowSilverHighScore') || 0;
+    highScore = parseInt(highScore, 10);
+    updateHighScoreUI();
+
+    function updateHighScoreUI() {
+        highScoreDisplayTitle.innerText = `HIGH SCORE: ${highScore}`;
+        highScoreDisplayPlay.innerText = `HIGH SCORE: ${highScore}`;
+    }
+
+    function saveHighScore() {
+        if (score > highScore) { highScore = score; localStorage.setItem('highLowSilverHighScore', highScore); updateHighScoreUI(); return true; }
+        return false;
+    }
+
+    function tryResetHighScore() {
+        if (confirm("本当にハイスコアの記録をリセットしますか？")) {
+            highScore = 0; localStorage.setItem('highLowSilverHighScore', 0);
+            highScoreDisplayTitle.innerText = "RESET CLEAR!"; highScoreDisplayTitle.style.color = "#ff5252";
+            setTimeout(() => { highScoreDisplayTitle.style.color = "#f1c40f"; updateHighScoreUI(); }, 1500);
+        }
+    }
+
+    const PALETTE = {
+        'A': '#8D6E63', 'B': '#5D4037', 'C': '#FF9800', '7': '#FFFFFF', '6': '#81D4FA', '8': '#F44336', 'Y': '#FFEB3B'
+    };
+
+    const OBSTACLES = {
+        bird: {
+            w: 12, h: 10, scale: 2,
+            sprite1: ["00000BBAA000","00000BBAA000","000000BA0000","0AAAAAA76000","BAAAAAAAACCC","BBAAAAAAAA00","0000AAAA0000","0000C00C0000"],
+            sprite2: ["000000000000","000000000000","000000000000","0AAAAAA76000","BAAAAAAAACCC","BBAAAAAAAA00","0000BBAA0000","0000BBAA0000","0000C00C0000"]
+        },
+        plane: {
+            w: 30, h: 10, scale: 12, 
+            sprite1: [
+                "000000000000000000000000000000",
+                "000000000000000000077700000000",
+                "000000000000000000777770000000",
+                "000000000000000007777777000000",
+                "000000777777777777777777700000",
+                "000077777666777777777777777000",
+                "000777777777777777777777777770",
+                "0C0777777777777777777777700000",
+                "000000000000000777777700000000",
+                "000000000000000007770000000000"
+            ],
+            sprite2: [
+                "000000000000000000000000000000",
+                "000000000000000000077700000000",
+                "000000000000000000777770000000",
+                "000000000000000007777777000000",
+                "000000777777777777777777700000",
+                "000077777666777777777777777000",
+                "000777777777777777777777777770",
+                "CCC777777777777777777777700000",
+                "000000000000000777777700000000",
+                "000000000000000007770000000000"
+            ]
+        },
+        rocket: {
+            w: 30, h: 12, scale: 16, 
+            sprite1: [
+                "000000000000000000000000000000",
+                "000000000000000000000008800000",
+                "000000000000000000000888800000",
+                "000000000077777777778888800000",
+                "000000077777777777777788800000",
+                "000007777776667777777778800000",
+                "000007777777777777777778800000",
+                "0C0000077777777777777788800000",
+                "000000000077777777778888800000",
+                "000000000000000000000888800000",
+                "000000000000000000000008800000",
+                "000000000000000000000000000000"
+            ],
+            sprite2: [
+                "000000000000000000000008800000",
+                "000000000000000000000888800000",
+                "000000000077777777778888800000",
+                "000000077777777777777788800000",
+                "000007777776667777777778800000",
+                "000007777777777777777778800000",
+                "YCYC00077777777777777788800000",
+                "000000000077777777778888800000",
+                "000000000000000000000888800000",
+                "000000000000000000000008800000",
+                "000000000000000000000000000000"
+            ]
+        }
+    };
+
+    // ----------------------------------------------------------
+    // ▼ 物理挙動パラメータの調整 (ふわっとしたジャンプ) ▼
+    // ----------------------------------------------------------
+    const BASE_GRAVITY = 0.28;      // 重力を小さくして落下速度を遅く (旧: 0.6)
+    const JUMP_POWER = -6.8;       // 重力低下に伴い、跳躍力もバランス調整 (旧: -8.5)
+    const STOMP_POWER = 12;        // 急降下はメリハリをつけるため速めに (旧: 9)
+    const HITBOX_W = 60; 
+    const HITBOX_H = 40;
+    const TARGET_X = 200; 
+    const TITLE_SPEED = 4.5; 
+
+    let currentLevel = 1, gameSpeed = 3.8, score = 0, frameCount = 0;
+    let platforms = [], mountains = [], birds = []; 
+    let levelUpTimer = 0, activeRival = null, inGameMsgTimer = 0;
+
+    // 初期最大ジャンプ数を2回に設定
+    const player = { x: -100, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, jumpCount: 0, maxJumps: 2, oldY: 200, images: playerImages };
+    let npcs = []; 
+    let birdEvent = { active: false, timer: 0, targetY: 0, cooldown: 180, type: 'bird' };
+
+    // ----------------------------------------------------------
+    // ▼ スコアによる難易度・最大ジャンプ回数の変化設計 ▼
+    // ----------------------------------------------------------
+    function calculateLevelData(currentScore) {
+        let level, speed, maxJumps;
+        if (currentScore < 500) { level = 1; speed = 3.8; maxJumps = 2; }
+        else if (currentScore < 1000) { level = 2; speed = 4.2; maxJumps = 3; }
+        else if (currentScore < 2000) { level = 3; speed = 4.6; maxJumps = 4; }
+        else if (currentScore < 3000) { level = 4; speed = 5.0; maxJumps = 5; }
+        else if (currentScore < 4000) { level = 5; speed = 5.4; maxJumps = 6; }
+        else if (currentScore < 5000) { level = 6; speed = 5.8; maxJumps = 7; }
+        else {
+            let step = Math.floor((currentScore - 5000) / 1500); 
+            level = 7 + step; speed = 6.2 + (step * 0.4);
+            // レベル7以降はさらに最大10までジャンプ数が段階的に増加
+            maxJumps = Math.min(10, 7 + step);              
+        }
+        return { level, speed, jumps: maxJumps };
+    }
+
+    function doJump() {
+        if (gameState !== 'PLAYING') return;
+        if (DEBUG_INFINITE_JUMP || player.jumpCount < player.maxJumps) {
+            playSound(audioSE.jump);
+            player.vy = JUMP_POWER;
+            if (!DEBUG_INFINITE_JUMP) player.jumpCount++;
+            updateJumpUI();
+            playerJumpEffects.push({ x: player.x + player.w / 2, y: player.y + player.h, size: 25, alpha: 0.8 });
+        }
+    }
+
+    function doStomp() { 
+        if (gameState === 'PLAYING' && player.vy !== 0) {
+            playSound(audioSE.stomp);
+            player.vy = STOMP_POWER; 
+        }
+    }
+
+    function togglePause() {
+        if (gameState === 'PLAYING') { 
+            playSound(audioSE.pauseIn);
+            if (audioSE.horseRun) audioSE.horseRun.pause();
+            gameState = 'PAUSE'; pauseScreen.style.display = 'block'; 
+        } 
+        else if (gameState === 'PAUSE') { 
+            playSound(audioSE.pauseOut);
+            if (audioSE.horseRun) audioSE.horseRun.play().catch(()=>{});
+            gameState = 'PLAYING'; pauseScreen.style.display = 'none'; 
+        }
+    }
+
+    function doStartOrRetry() {
+        playSound(audioSE.button);
+        if (gameState === 'TITLE') showInstruction();
+        else if (gameState === 'INSTRUCTION' || gameState === 'GAMEOVER') startGame();
+    }
+
+    function addClickEffect(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
+        clickEffects.push({ x: x, y: y, radius: 10, alpha: 0.8, isRight: clientX > window.innerWidth / 2 });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'e' && gameState === 'TITLE') { tryResetHighScore(); return; }
+        if (key === 'f') doJump();
+        if (key === 's') doStomp();
+        if (key === ' ' || key === 'enter') {
+            if(gameState === 'PLAYING' || gameState === 'PAUSE') togglePause(); else doStartOrRetry();
+        }
+        if (key === 't' && gameState === 'GAMEOVER') {
+            playSound(audioSE.button);
+            initTitleScreen();
+        }
+    });
+
+    window.addEventListener('touchstart', (e) => {
+        if(e.target.tagName === 'BUTTON') return;
+        e.preventDefault();
+        const touchX = e.touches[0].clientX, touchY = e.touches[0].clientY;
+        if (touchY < window.innerHeight * 0.15 && (gameState === 'PLAYING' || gameState === 'PAUSE')) { togglePause(); return; }
+        if (gameState === 'PAUSE') return;
+        if (gameState === 'TITLE' && e.touches.length >= 3) { if (titleTouchTimer) { clearTimeout(titleTouchTimer); titleTouchTimer = null; } tryResetHighScore(); return; }
+        addClickEffect(touchX, touchY); 
+        if (gameState === 'TITLE') {
+            if (!titleTouchTimer) titleTouchTimer = setTimeout(() => { doStartOrRetry(); titleTouchTimer = null; }, 100);
+            return;
+        }
+        if (gameState === 'INSTRUCTION') { doStartOrRetry(); return; }
+        if (gameState === 'GAMEOVER') return;
+        if (touchX > window.innerWidth / 2) doJump(); else doStomp(); 
+    }, { passive: false });
+
+    window.addEventListener('mousedown', (e) => {
+        if(e.target.tagName === 'BUTTON') return;
+        const clickX = e.clientX, clickY = e.clientY;
+        if (clickY < window.innerHeight * 0.15 && (gameState === 'PLAYING' || gameState === 'PAUSE')) { togglePause(); return; }
+        if (gameState === 'PAUSE') return;
+        addClickEffect(clickX, clickY);
+        if (gameState === 'TITLE' || gameState === 'INSTRUCTION') { doStartOrRetry(); return; }
+        if (gameState === 'GAMEOVER') return;
+        if (clickX > window.innerWidth / 2) doJump(); else doStomp(); 
+    });
+
+    function updateJumpUI() {
+        jumpDisplay.innerText = `JUMP: ${player.jumpCount} / ${player.maxJumps}`;
+        jumpDisplay.style.color = (player.jumpCount === player.maxJumps) ? '#ff5252' : '#ffd700';
+    }
+
+    function updateLevelUI() { levelDisplay.innerText = `LEVEL: ${currentLevel}`; }
+
+    function createPlatform(x, y, w, h, type) {
+        let pf = { x, y, w, h, type, details: [] };
+        if (type === 'cliff') {
+            let count = Math.floor(w / 30);
+            for(let i=0; i<count; i++) pf.details.push({ dx: Math.random()*w, dw: 5+Math.random()*15 });
+            
+            pf.cacti = [];
+            let cactusCount = Math.floor(w / 150);
+            for(let i=0; i<cactusCount; i++) {
+                pf.cacti.push({ cx: 20 + Math.random()*(w-40), size: 0.6 + Math.random()*0.6 });
+            }
+        } else if (type === 'cloud') {
+            let count = Math.floor(w / 40) + 2;
+            for(let i=0; i<count; i++) {
+                pf.details.push({ cx: (i * (w/count)) + Math.random()*10, cy: Math.random()*15 + 5, r: 25 + Math.random()*20 });
+            }
+            pf.balloons = [];
+            let balloonCount = Math.floor(w / 200);
+            for(let i=0; i<balloonCount; i++) {
+                pf.balloons.push({ 
+                    cx: 30 + Math.random()*(w-60), 
+                    size: 0.7 + Math.random()*0.6,
+                    color: ['rgba(231, 76, 60, 0.6)', 'rgba(52, 152, 219, 0.6)', 'rgba(241, 196, 15, 0.6)', 'rgba(46, 204, 113, 0.6)'][Math.floor(Math.random()*4)]
+                });
+            }
+        } else if (type === 'meteor') {
+            let count = Math.floor(w / 40);
+            for(let i=0; i<count; i++) {
+                pf.details.push({ cx: Math.random()*w, cy: Math.random()*h, r: 5 + Math.random()*12 });
+            }
+            
+            pf.rabbits = [];
+            if (Math.random() > 0.3) {
+                pf.rabbits.push({ cx: 20 + Math.random()*(w-40), size: 0.8 + Math.random()*0.5 });
+            }
+        }
+        return pf;
+    }
+
+    function initMountains() {
+        mountains = [];
+        for (let i = 0; i < 7; i++) mountains.push({ x: i * 200, y: canvas.height, w: 200 + Math.random() * 200, h: 250 + Math.random() * 200 });
+    }
+
+    function initTitleScreen() {
+        if (audioSE.horseRun) { audioSE.horseRun.pause(); audioSE.horseRun.currentTime = 0; }
+
+        gameState = 'TITLE';
+        titleScreen.style.display = 'block'; titleScoreBox.style.display = 'block';
+        instructionScreen.style.display = 'none'; playingUI.style.display = 'none';
+        gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none'; inGameMessage.style.display = 'none';
+        clickEffects = []; playerJumpEffects = []; hasPassedRainbow = false; rainbowTimer = 0;
+        
+        let targetVisualScore = 0;
+        let titleType = 'cliff';
+        if (highScore >= 18000) { targetVisualScore = 20000; titleType = 'meteor'; }
+        else if (highScore >= 10000) { targetVisualScore = 10000; titleType = 'cloud'; }
+        else if (highScore >= 5000) { targetVisualScore = 5000; titleType = 'cliff'; }
+        visualScore = targetVisualScore;
+        
+        initMountains();
+        planets = []; 
+        platforms = [];
+        let curX = -100;
+        while(curX < canvas.width + 500) {
+            let pw = 300 + Math.random()*200;
+            platforms.push(createPlatform(curX, 400, pw, 200, titleType));
+            curX += pw + (60 + Math.random()*90);
+        }
+        player.x = -100;
+        
+        npcs = [
+            { name: 'しゃぷふら', targetScore: 18000, x: 650, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, oldY: 200, jumpCount: 0, maxJumps: 10, delay: 0, images: syapufuraImages },
+            { name: 'おとーと',   targetScore: 10000, x: 450, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, oldY: 200, jumpCount: 0, maxJumps: 10, delay: 20, images: ototoImages },
+            { name: 'こじたつ',   targetScore: 5000,  x: 250, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, oldY: 200, jumpCount: 0, maxJumps: 10, delay: 40, images: kojitatsuImages }
+        ];
+        updateHighScoreUI();
+    }
+
+    function showInstruction() {
+        gameState = 'INSTRUCTION'; titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'block';
+    }
+
+    function startGame() {
+        gameState = 'PLAYING';
+        let initialData = calculateLevelData(0);
+        currentLevel = initialData.level; gameSpeed = initialData.speed; player.maxJumps = initialData.jumps; // 最初は2回からスタート
+        
+        score = 0; visualScore = 0; frameCount = 0; levelUpTimer = 0; clickEffects = []; playerJumpEffects = [];
+        hasPassedRainbow = false; rainbowTimer = 0;
+        
+        player.x = TARGET_X; player.y = 100; player.vy = 0; player.jumpCount = 0;
+        updateJumpUI(); updateLevelUI();
+        
+        birds = []; birdEvent = { active: false, timer: 0, targetY: 0, cooldown: 180, type: 'bird' };
+        activeRival = null; inGameMsgTimer = 0; planets = [];
+        
+        titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'none';
+        playingUI.style.display = 'block'; gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none';
+        levelUpMessage.style.display = 'none'; warningDisplay.style.display = 'none'; inGameMessage.style.display = 'none';
+
+        initMountains();
+        platforms = [ createPlatform(0, 400, 1200, canvas.height - 400 + 50, 'cliff') ];
+    }
+
+    function showInGameMessage(text, color, isGradient) {
+        inGameMessage.innerText = text; applyTextColor(inGameMessage, color, isGradient);
+        inGameMessage.style.display = 'block'; inGameMsgTimer = 180; 
+    }
+
+    function checkRivalDefeat(finalScore) {
+        rivalDefeatMsg.style.display = 'none'; syapufurarMsg.style.display = 'none'; smallStepMsg.style.display = 'none';
+        rivalDefeatMsg.innerText = '';
+
+        if (finalScore >= 18000) {
+            syapufurarMsg.innerText = "👑 月に到着した！あなたは最速のしゃぷふらーだ！ 👑";
+            syapufurarMsg.style.display = 'block'; 
+            smallStepMsg.style.display = 'block';
+            applyTextColor(syapufurarMsg, 'linear-gradient(to right, #E53935, #1976D2)', true);
+        } else if (finalScore >= 10000) {
+            rivalDefeatMsg.innerText = "こじたつとおとーとを超えた！";
+            applyTextColor(rivalDefeatMsg, '#FDD835', false);
+            rivalDefeatMsg.style.display = 'block';
+        } else if (finalScore >= 5000) {
+            rivalDefeatMsg.innerText = "こじたつを超えた！";
+            applyTextColor(rivalDefeatMsg, '#4CAF50', false);
+            rivalDefeatMsg.style.display = 'block';
+        }
+    }
+
+    function gameOver(cause, color) {
+        if (audioSE.horseRun) { audioSE.horseRun.pause(); }
+
+        gameState = 'GAMEOVER'; 
+        playingUI.style.display = 'none'; inGameMessage.style.display = 'none';
+        
+        if (saveHighScore()) newRecordMsg.style.display = 'block'; else newRecordMsg.style.display = 'none';
+        checkRivalDefeat(score);
+
+        finalLevelDisplay.innerText = `LEVEL: ${currentLevel}`; finalScoreDisplay.innerText = `SCORE: ${score}`;
+        
+        if (score >= 18000) {
+            if (moonImage && moonImage.complete && moonImage.naturalWidth > 0) {
+                gameOverScreen.style.backgroundImage = `url(${moonImage.src})`;
+            }
+            gameOverScreen.style.backgroundSize = "contain";
+            gameOverScreen.style.backgroundPosition = "center";
+            gameOverScreen.style.backgroundRepeat = "no-repeat";
+            gameOverScreen.style.backgroundColor = "rgba(0, 0, 0, 0.7)"; 
+            
+            deathCause.innerText = "ゲームクリア！";
+            deathCause.style.color = "#f1c40f";
+            initConfetti(); 
+            playSound(audioSE.clear);
+        } else {
+            gameOverScreen.style.backgroundImage = "none";
+            gameOverScreen.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+            deathCause.innerText = cause;
+            deathCause.style.color = color;
+        }
+
+        gameOverScreen.style.display = 'block';
+    }
+
+    function generatePlatforms(speedParam, jumpsParam, isTitle = false) {
+        let type = 'cliff'; let maxPlats = 8;
+        let minGap = 50 + (jumpsParam * 10); let maxGap = 100 + (jumpsParam * 15);
+
+        let evalScore = isTitle ? highScore : score;
+
+        if (evalScore >= 18000) {
+            type = 'meteor'; maxPlats = 2; minGap = 250; maxGap = 450;
+        } else if (evalScore >= 7000) {
+            type = 'cloud'; maxPlats = 5; minGap = 200; maxGap = 350;
+        }
+
+        if (isTitle) { maxPlats = 4; minGap = 60; maxGap = 150; }
+
+        while (platforms.length < maxPlats) {
+            const lastPlatform = platforms[platforms.length - 1];
+            if (!lastPlatform) break;
+            
+            let startX = lastPlatform.x + lastPlatform.w;
+            let gap = minGap + Math.random() * (maxGap - minGap);
+
+            if (!isTitle && rainbowTimer > 0) {
+                gap = 0;
+                type = 'meteor';
+            }
+
+            let newX = startX + gap;
+
+            if (!isTitle && newX < canvas.width) {
+                newX = canvas.width + 50;
+            }
+
+            if (newX > canvas.width + 800) break;
+
+            let yChange = (Math.random() * 200) - 100; 
+            let newY = lastPlatform.y + yChange;
+            if (newY > 480) newY = 480; 
+            if (newY < 250) newY = 250; 
+
+            let minW = 120, maxW = 400;
+            let newH = canvas.height - newY + 50;
+            
+            if (type === 'meteor') { minW = 80; maxW = 200; newH = 40 + Math.random() * 30; if(newY>400) newY-=50; }
+            else if (type === 'cloud') { minW = 120; maxW = 250; newH = 40 + Math.random() * 20; }
+
+            if (!isTitle && rainbowTimer > 0) {
+                minW = 1500; maxW = 2000;
+            }
+
+            let newW = minW + Math.random() * (maxW - minW); 
+            platforms.push(createPlatform(newX, newY, newW, newH, type));
+        }
+    }
+
+    function checkLevelUp() {
+        const newData = calculateLevelData(score);
+        if (newData.level > currentLevel) {
+            currentLevel = newData.level; gameSpeed = newData.speed;
+            
+            // 最大ジャンプ数が増えたかどうかに応じてメッセージを分岐
+            if (player.maxJumps < newData.jumps) { 
+                levelUpSub.innerText = "スピードUP & ジャンプ回数追加！"; 
+                levelUpSub.style.color = "#fff"; 
+            } else { 
+                levelUpSub.innerText = "スピードUP！"; 
+                levelUpSub.style.color = "#f1c40f"; 
+            }
+            
+            player.maxJumps = newData.jumps; 
+            updateLevelUI(); updateJumpUI(); levelUpTimer = 120;
+            playSound(audioSE.levelup);
+        }
+    }
+
+    function update() {
+        if (gameState === 'PAUSE') return; 
+        frameCount++;
+
+        if (gameState === 'GAMEOVER') {
+            if (score >= 18000) {
+                confettis.forEach(c => {
+                    c.x += c.vx;
+                    c.y += c.vy;
+                    c.angle += c.spin;
+                    if (c.y > canvas.height) {
+                        c.y = -10;
+                        c.x = Math.random() * canvas.width;
+                    }
+                });
+            }
+            return;
+        }
+
+        let isSpace = false;
+        if (gameState === 'PLAYING' && score >= 18000) isSpace = true;
+        if ((gameState === 'TITLE' || gameState === 'INSTRUCTION') && highScore >= 18000) isSpace = true;
+
+        if (isSpace) spawnPlanet();
+        
+        planets.forEach(p => {
+            let speed = (gameState === 'PLAYING') ? gameSpeed : TITLE_SPEED;
+            p.x -= p.speed * speed;
+        });
+        planets = planets.filter(p => p.x + p.r > -100);
+
+        if (gameState === 'PLAYING') {
+            if (rainbowTimer > 0) {
+                visualScore += (18000 - visualScore) * 0.1; 
+            } else {
+                visualScore += (score - visualScore) * 0.05;
+            }
+
+            stars.forEach(s => { s.x -= s.speed * gameSpeed * 0.5; if (s.x < 0) s.x = canvas.width; });
+            
+            if (score >= 18000 && !hasPassedRainbow) {
+                hasPassedRainbow = true; rainbowTimer = 180; 
+                platforms.push(createPlatform(player.x - 100, 450, 3000, 100, 'meteor'));
+            }
+            if (rainbowTimer > 0) rainbowTimer--;
+
+        } else if (gameState === 'TITLE' || gameState === 'INSTRUCTION') {
+            let targetVisualScore = 0;
+            if (highScore >= 18000) targetVisualScore = 20000; 
+            else if (highScore >= 10000) targetVisualScore = 10000;
+            else if (highScore >= 5000) targetVisualScore = 5000;
+            visualScore = targetVisualScore;
+
+            stars.forEach(s => { s.x -= s.speed * TITLE_SPEED * 0.5; if (s.x < 0) s.x = canvas.width; });
+        }
+
+        for (let i = clickEffects.length - 1; i >= 0; i--) {
+            let eff = clickEffects[i]; eff.radius += 4; eff.alpha -= 0.04; 
+            if (eff.alpha <= 0) clickEffects.splice(i, 1);
+        }
+        for (let i = playerJumpEffects.length - 1; i >= 0; i--) {
+            let eff = playerJumpEffects[i]; eff.size += 2; eff.alpha -= 0.05; eff.x -= gameSpeed; 
+            if (eff.alpha <= 0) playerJumpEffects.splice(i, 1);
+        }
+
+        if (gameState === 'TITLE' || gameState === 'INSTRUCTION') {
+            mountains.forEach(m => { m.x -= TITLE_SPEED * 0.15; if (m.x + m.w < 0) m.x = canvas.width + Math.random() * 100; });
+            platforms.forEach(pf => pf.x -= TITLE_SPEED);
+            if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) platforms.shift();
+            generatePlatforms(TITLE_SPEED, 2, true);
+
+            npcs.forEach((npc, index) => {
+                npc.oldY = npc.y;
+                let absVy = Math.abs(npc.vy); let gMult = 1.0;
+                if (absVy < 6.0) gMult = 0.2 + (0.8 * (absVy / 6.0));
+                npc.vy += BASE_GRAVITY * gMult; npc.y += npc.vy;
+
+                if (npc.y > canvas.height) {
+                    npc.x = -100 - (index * 80); let targetPf = platforms[0];
+                    npc.y = targetPf ? targetPf.y - HITBOX_H : 200; npc.vy = 0; npc.jumpCount = 0;
+                }
+
+                const targetX = 650 - (index * 200);
+                let recSpeed = (npc.name === 'しゃぷふら') ? 6.0 : (npc.name === 'おとーと') ? 3.5 : 2.5;
+                if (npc.x < targetX) {
+                    npc.x += recSpeed;
+                    if (npc.x > targetX) npc.x = targetX;
+                } else if (npc.x > targetX) {
+                    npc.x -= recSpeed;
+                    if (npc.x < targetX) npc.x = targetX;
+                }
+
+                let isGrounded = false, onPlatform = null, platformBelow = false; 
+                platforms.forEach(pf => {
+                    const px = npc.x, pw = HITBOX_W;
+                    if (npc.x + HITBOX_W > pf.x && npc.x < pf.x + pf.w) platformBelow = true;
+                    if (px < pf.x + pf.w && px + pw > pf.x) {
+                        if (npc.vy >= 0 && npc.oldY + HITBOX_H <= pf.y + npc.vy + 10 && npc.y + HITBOX_H >= pf.y) {
+                            npc.y = pf.y - HITBOX_H; npc.vy = 0; npc.jumpCount = 0; isGrounded = true; onPlatform = pf;
+                        } else if (npc.y + HITBOX_H > pf.y && npc.y < pf.y + pf.h) {
+                            npc.x = pf.x - pw - 2; 
+                        }
+                    }
+                });
+
+                if (isGrounded && onPlatform) {
+                    if (onPlatform.x + onPlatform.w - npc.x < 150) { npc.vy = JUMP_POWER; npc.jumpCount++; }
+                } else if (!isGrounded) {
+                    if (!platformBelow && npc.vy > 1 && npc.jumpCount < npc.maxJumps) { npc.vy = JUMP_POWER; npc.jumpCount++; }
+                    if (npc.y > 420 && npc.vy > 0) { npc.vy = JUMP_POWER; npc.jumpCount++; }
+                }
+            });
+            return; 
+        }
+
+        if (frameCount % 10 === 0) { 
+            score += 10; 
+            checkLevelUp(); 
+        }
+
+        if (levelUpTimer > 0) { levelUpTimer--; levelUpMessage.style.display = 'block'; } else levelUpMessage.style.display = 'none';
+        if (inGameMsgTimer > 0) { inGameMsgTimer--; if (inGameMsgTimer === 0) inGameMessage.style.display = 'none'; }
+
+        if (!activeRival) {
+            let nextRival = RIVAL_TARGETS_DATA.slice().reverse().find(r => score >= r.appearScore && score < r.score);
+            if (nextRival) {
+                playSound(audioSE.rivalAppear);
+
+                let initialPlatform = platforms[platforms.length - 1]; 
+                activeRival = { 
+                    data: nextRival, 
+                    x: canvas.width + 100, 
+                    y: initialPlatform ? initialPlatform.y - HITBOX_H : 200, 
+                    w: HITBOX_W, h: HITBOX_H,
+                    vy: 0, jumpCount: 0, state: 1, delay: Math.floor(Math.random() * 10), images: nextRival.imgObj 
+                };
+            }
+        } else {
+            let ar = activeRival;
+            if (ar.state === 1) {
+                ar.x -= (gameSpeed + 1); if (ar.x <= TARGET_X + 250) ar.state = 2;
+            } else if (ar.state === 2) {
+                let targetXRival = TARGET_X + 250;
+                if (ar.x < targetXRival) ar.x += 1; if (ar.x > targetXRival) ar.x -= 1;
+                if (score >= ar.data.score) { 
+                    ar.state = 3; 
+                    showInGameMessage(`${ar.data.name}を超えた！`, ar.data.color, ar.data.isGradient); 
+                    if (ar.data.name === 'しゃぷふら') playSound(audioSE.bossPass);
+                    else playSound(audioSE.rivalPass);
+                }
+            } else if (ar.state === 3) {
+                ar.x -= (gameSpeed + 3); if (ar.x < -150) activeRival = null;
+            }
+
+            if (activeRival) {
+                let absVy = Math.abs(ar.vy); let gMult = 1.0;
+                if (absVy < 6.0) gMult = 0.2 + (0.8 * (absVy / 6.0));
+                ar.vy += BASE_GRAVITY * gMult; ar.y += ar.vy;
+
+                let arGrounded = false, onPlatform = null, platformBelow = false;
+                platforms.forEach(pf => {
+                    const px = ar.x, pw = HITBOX_W;
+                    if (ar.x + HITBOX_W > pf.x && ar.x < pf.x + pf.w) platformBelow = true;
+                    if (px < pf.x + pf.w && px + pw > pf.x) {
+                        if (ar.vy >= 0 && ar.oldY + HITBOX_H <= pf.y + ar.vy + 20 && ar.y + HITBOX_H >= pf.y) {
+                            ar.y = pf.y - HITBOX_H; ar.vy = 0; ar.jumpCount = 0; arGrounded = true; onPlatform = pf;
+                        } else if (ar.y + HITBOX_H > pf.y && ar.y < pf.y + pf.h) {
+                            ar.x = pf.x - pw - 2; 
+                        }
+                    }
+                });
+
+                if (ar.y > canvas.height) { ar.y = platforms[0] ? platforms[0].y - HITBOX_H : 50; ar.vy = 0; }
+                if (arGrounded && onPlatform) {
+                    if (onPlatform.x + onPlatform.w - ar.x < 150) ar.vy = JUMP_POWER;
+                } else if (!arGrounded) {
+                    if (!platformBelow && ar.vy > 1 && ar.jumpCount < 10) { ar.vy = JUMP_POWER; ar.jumpCount++; }
+                    if (ar.y > 420 && ar.vy > 0) ar.vy = JUMP_POWER; 
+                }
+                ar.oldY = ar.y;
+            }
+        }
+
+        player.oldY = player.y;
+        let absVy = Math.abs(player.vy); let gravityMultiplier = 1.0;
+        if (absVy < 6.0) gravityMultiplier = 0.2 + (0.8 * (absVy / 6.0));
+        player.vy += BASE_GRAVITY * gravityMultiplier; player.y += player.vy;
+        if (player.x < TARGET_X) player.x += 2.0; 
+        
+        let isGrounded = false;
+        platforms.forEach(pf => {
+            pf.x -= gameSpeed;
+            const px = player.x, pw = player.w;
+            if (px < pf.x + pf.w && px + pw > px) {
+                if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
+                    player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
+                    if (player.jumpCount > 0) { player.jumpCount = 0; updateJumpUI(); }
+                } else if (player.y + player.h > pf.y && player.y < pf.y + pf.h) {
+                    player.x = pf.x - pw - 2;
+                }
+            }
+        });
+
+        if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) platforms.shift();
+        generatePlatforms(gameSpeed, player.maxJumps);
+
+        if (birdEvent.cooldown > 0) birdEvent.cooldown--;
+
+        // 障害物の発生頻度（確率：0.002）
+        if (!birdEvent.active && birdEvent.cooldown <= 0 && score > 200) {
+            if (Math.random() < 0.002) { 
+                playSound(audioSE.warning);
+                birdEvent.active = true; birdEvent.timer = 0;
+                let targetPlatform = platforms.find(pf => pf.x > 300 && pf.x < 800);
+                if (!targetPlatform) targetPlatform = platforms[platforms.length - 1];
+                
+                birdEvent.type = (score >= 18000) ? 'rocket' : (score >= 7000) ? 'plane' : 'bird';
+                
+                let data = OBSTACLES[birdEvent.type];
+                let realH = data.h * data.scale;
+                let offset;
+
+                if (birdEvent.type === 'bird') {
+                    offset = 40 + Math.random() * 80;
+                } else {
+                    offset = (Math.random() > 0.5) ? 10 : realH + 50; 
+                }
+                
+                birdEvent.targetY = targetPlatform.y - offset; 
+            }
+        }
+
+        // 警告から障害物の出現までの待機フレーム（150フレーム ＝ 約2.5秒）
+        if (birdEvent.active) {
+            birdEvent.timer++; warningDisplay.style.display = 'block';
+            if (birdEvent.timer > 150) { 
+                
+                if (birdEvent.type === 'bird') playSound(audioSE.flyBird);
+                else if (birdEvent.type === 'plane') playSound(audioSE.flyPlane);
+                else if (birdEvent.type === 'rocket') playSound(audioSE.flyRocket);
+
+                let data = OBSTACLES[birdEvent.type];
+                let count = (birdEvent.type === 'bird') ? ((currentLevel >= 7) ? 3 : (currentLevel >= 4) ? 2 : 1) : 1;
+                let realW = data.w * data.scale;
+                let realH = data.h * data.scale;
+
+                for (let j = 0; j < count; j++) {
+                    birds.push({ 
+                        type: birdEvent.type,
+                        x: canvas.width, 
+                        y: birdEvent.targetY - (j * (realH + 20)) - realH, 
+                        w: realW, h: realH, 
+                        scale: data.scale,
+                        vx: -(gameSpeed + (birdEvent.type === 'bird' ? 10 : 6)) 
+                    });
+                }
+                birdEvent.active = false; 
+                birdEvent.cooldown = 300; 
+                warningDisplay.style.display = 'none';
+            }
+        }
+
+        for (let i = birds.length - 1; i >= 0; i--) {
+            let b = birds[i]; b.x += b.vx;
+            
+            let hitboxMarginX = (b.type === 'bird') ? 0 : 20;
+            let hitboxMarginY = (b.type === 'bird') ? 0 : 15;
+
+            if (player.x < b.x + b.w - hitboxMarginX && player.x + player.w > b.x + hitboxMarginX && 
+                player.y < b.y + b.h - hitboxMarginY && player.y + player.h > b.y + hitboxMarginY) {
+                
+                let causeStr = "CRASHED!";
+                if (b.type === 'bird') { causeStr = "BIRD STRIKE!"; playSound(audioSE.crashBird); }
+                else if (b.type === 'plane') { causeStr = "PLANE CRASH!"; playSound(audioSE.crashPlane); }
+                else if (b.type === 'rocket') { causeStr = "ROCKET CRASH!"; playSound(audioSE.crashRocket); }
+                
+                gameOver(causeStr, "#f1c40f"); 
+                return;
+            }
+            if (b.x < -b.w) birds.splice(i, 1);
+        }
+
+        mountains.forEach(m => { m.x -= gameSpeed * 0.15; if (m.x + m.w < 0) m.x = canvas.width + Math.random() * 100; });
+
+        if (player.y > canvas.height || player.x + player.w < 0) { 
+            if (score >= 18000) {
+                gameOver("BECAME SPACE DUST", "#9b59b6");
+            } else {
+                playSound(audioSE.fall);
+                gameOver("FALL DOWN", "#ff5252"); 
+            }
+            return; 
+        }
+
+        if (gameState === 'PLAYING') {
+            if (isGrounded && player.y + player.h <= canvas.height) {
+                if (audioSE.horseRun && audioSE.horseRun.paused) {
+                    audioSE.horseRun.play().catch(()=>{});
+                }
+            } else {
+                if (audioSE.horseRun && !audioSE.horseRun.paused) {
+                    audioSE.horseRun.pause();
+                }
+            }
+        }
+        
+        scoreDisplay.innerText = `SCORE: ${score}`;
+    }
+
+    function drawPixelSprite(spriteArray, x, y, palette, scale) {
+        for (let row = 0; row < spriteArray.length; row++) {
+            if (!spriteArray[row]) continue;
+            for (let col = 0; col < spriteArray[row].length; col++) {
+                let colorCode = spriteArray[row][col];
+                if (palette && palette[colorCode]) {
+                    ctx.fillStyle = palette[colorCode]; ctx.fillRect(x + (col * scale), y + (row * scale), scale, scale);
+                }
+            }
+        }
+    }
+
+    function drawCharacterImage(charaObj) {
+        if (!charaObj || !charaObj.images) return;
+
+        let cw = charaObj.w || HITBOX_W;
+        let ch = charaObj.h || HITBOX_H;
+
+        let imgToDraw = null;
+        let hasValidJump = charaObj.images.jump && charaObj.images.jump.complete && charaObj.images.jump.naturalWidth > 1;
+
+        if (charaObj.vy !== 0 && hasValidJump) {
+            imgToDraw = charaObj.images.jump;
+        } else {
+            let delay = charaObj.delay || 0;
+            let frames = charaObj.images.run.length;
+            let frameIndex = Math.floor((frameCount + delay) / 4) % frames; 
+            
+            imgToDraw = charaObj.images.run[frameIndex];
+
+            if (!imgToDraw || !imgToDraw.complete || imgToDraw.naturalWidth <= 1) {
+                for (let i = 0; i < frames; i++) {
+                    if (charaObj.images.run[i] && charaObj.images.run[i].complete && charaObj.images.run[i].naturalWidth > 1) {
+                        imgToDraw = charaObj.images.run[i];
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!imgToDraw || !imgToDraw.complete || imgToDraw.naturalWidth <= 1) {
+            if (charaObj.name === 'しゃぷふら') ctx.fillStyle = "#E53935";
+            else if (charaObj.name === 'おとーと') ctx.fillStyle = "#FDD835";
+            else if (charaObj.name === 'こじたつ') ctx.fillStyle = "#4CAF50";
+            else ctx.fillStyle = "#95a5a6"; 
+            
+            ctx.fillRect(charaObj.x, charaObj.y, cw, ch); 
+            return;
+        }
+
+        const targetW = 90; 
+        const aspectRatio = imgToDraw.naturalHeight / imgToDraw.naturalWidth; 
+        const targetH = targetW * aspectRatio;
+
+        const offsetX = (cw - targetW) / 2; 
+        const offsetY = ch - targetH + 5; 
+        
+        ctx.drawImage(imgToDraw, charaObj.x + offsetX, charaObj.y + offsetY, targetW, targetH);
+    }
+
+    function drawPlatform(pf) {
+        if (pf.type === 'cliff') {
+            if (pf.cacti) {
+                pf.cacti.forEach(c => {
+                    let bx = pf.x + c.cx;
+                    let by = pf.y;
+                    let bw = 16 * c.size; 
+                    let bh = 50 * c.size; 
+                    
+                    ctx.fillStyle = 'rgba(80, 150, 80, 0.6)'; 
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(bx - bw/2, by - bh, bw, bh, [bw/2, bw/2, 0, 0]);
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.roundRect(bx - bw*1.8, by - bh*0.5, bw*1.5, bw*0.8, [0, 0, bw*0.4, bw*0.4]); 
+                    ctx.roundRect(bx - bw*1.8, by - bh*0.8, bw*0.8, bh*0.3 + bw*0.8, [bw*0.4, bw*0.4, 0, 0]); 
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.roundRect(bx + bw*0.5, by - bh*0.35, bw*1.5, bw*0.8, [0, 0, bw*0.4, bw*0.4]); 
+                    ctx.roundRect(bx + bw*1.2, by - bh*0.7, bw*0.8, bh*0.35 + bw*0.8, [bw*0.4, bw*0.4, 0, 0]); 
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = 'rgba(30, 80, 30, 0.4)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by - bh + bw/2); ctx.lineTo(bx, by);
+                    ctx.moveTo(bx - bw*1.4, by - bh*0.8 + bw*0.4); ctx.lineTo(bx - bw*1.4, by - bh*0.5 + bw*0.4);
+                    ctx.moveTo(bx + bw*1.6, by - bh*0.7 + bw*0.4); ctx.lineTo(bx + bw*1.6, by - bh*0.35 + bw*0.4);
+                    ctx.stroke();
+                });
+            }
+
+            let grad = ctx.createLinearGradient(pf.x, pf.y, pf.x, pf.y + pf.h);
+            grad.addColorStop(0, '#5d4037'); grad.addColorStop(1, '#3e2723');
+            ctx.fillStyle = grad; ctx.fillRect(pf.x, pf.y, pf.w, pf.h);
+            ctx.fillStyle = '#689f38'; ctx.fillRect(pf.x, pf.y, pf.w, 12); 
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            pf.details.forEach(d => { ctx.fillRect(pf.x + d.dx, pf.y + 12, d.dw, pf.h); });
+        } 
+        else if (pf.type === 'cloud') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath(); ctx.roundRect(pf.x, pf.y, pf.w, pf.h, 20); ctx.fill();
+            pf.details.forEach(d => {
+                ctx.beginPath(); ctx.arc(pf.x + d.cx, pf.y + d.cy, d.r, 0, Math.PI * 2); ctx.fill();
+            });
+            
+            if (pf.balloons) {
+                pf.balloons.forEach(b => {
+                    let bx = pf.x + b.cx;
+                    let by = pf.y - 15 * b.size; 
+                    let bs = b.size;
+                    
+                    ctx.fillStyle = b.color; 
+                    ctx.beginPath(); ctx.arc(bx, by - 30*bs, 20*bs, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(bx - 19*bs, by - 25*bs); ctx.lineTo(bx - 10*bs, by - 10*bs); ctx.lineTo(bx + 10*bs, by - 10*bs); ctx.lineTo(bx + 19*bs, by - 25*bs); ctx.fill();
+                    
+                    ctx.fillStyle = 'rgba(139, 69, 19, 0.6)';
+                    ctx.fillRect(bx - 8*bs, by, 16*bs, 10*bs);
+                    
+                    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(bx - 10*bs, by - 10*bs); ctx.lineTo(bx - 8*bs, by);
+                    ctx.moveTo(bx + 10*bs, by - 10*bs); ctx.lineTo(bx + 8*bs, by);
+                    ctx.stroke();
+                });
+            }
+
+            ctx.fillStyle = 'rgba(200, 210, 220, 0.5)';
+            ctx.beginPath(); ctx.roundRect(pf.x, pf.y + pf.h - 15, pf.w, 15, 10); ctx.fill();
+        } 
+        else if (pf.type === 'meteor') {
+            ctx.fillStyle = '#4a4a4a';
+            ctx.beginPath(); ctx.roundRect(pf.x, pf.y, pf.w, pf.h, 15); ctx.fill();
+            ctx.fillStyle = '#2c2c2c';
+            pf.details.forEach(d => {
+                ctx.beginPath(); ctx.ellipse(pf.x + d.cx, pf.y + d.cy, d.r, d.r * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+            });
+            
+            if (pf.rabbits) {
+                pf.rabbits.forEach(r => {
+                    let bx = pf.x + r.cx;
+                    let by = pf.y;
+                    let rs = r.size;
+                    
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.beginPath(); ctx.ellipse(bx, by - 8*rs, 10*rs, 8*rs, 0, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(bx + 6*rs, by - 14*rs, 7*rs, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(bx + 3*rs, by - 22*rs, 2*rs, 8*rs, -0.2, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(bx + 9*rs, by - 21*rs, 2*rs, 8*rs, 0.2, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(bx - 10*rs, by - 6*rs, 3*rs, 0, Math.PI*2); ctx.fill();
+                });
+            }
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath(); ctx.roundRect(pf.x, pf.y, pf.w, 10, 15); ctx.fill();
+        }
+    }
+
+    function drawCelestial(img, x, y, size, fallbackColor, isMoon) {
+        if(img && img.complete && img.naturalWidth > 0) {
+            let w = size * 2;
+            let h = w * (img.naturalHeight / img.naturalWidth);
+            ctx.drawImage(img, x - w/2, y - h/2, w, h);
+        } else {
+            ctx.fillStyle = fallbackColor;
+            ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+            if(isMoon && size > 30) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+                let r = size;
+                ctx.beginPath(); ctx.arc(x - r*0.3, y - r*0.2, r*0.15, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + r*0.4, y + r*0.1, r*0.2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x - r*0.1, y + r*0.4, r*0.1, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + r*0.2, y - r*0.4, r*0.12, 0, Math.PI*2); ctx.fill();
+            }
+        }
+    }
+
+    function drawPlanets() {
+        planets.forEach(p => {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            
+            ctx.fillStyle = p.type.color;
+            ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill();
+
+            if (p.type.stripe) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(-p.r*0.8, -p.r*0.4, p.r*1.6, p.r*0.2);
+                ctx.fillRect(-p.r*0.9, p.r*0.1, p.r*1.8, p.r*0.3);
+            }
+
+            if (p.type.ring) {
+                ctx.strokeStyle = 'rgba(236, 240, 241, 0.6)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, p.r * 1.8, p.r * 0.4, 0.2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            let shadowGrad = ctx.createRadialGradient(p.r*0.3, -p.r*0.3, p.r*0.1, 0, 0, p.r);
+            shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            shadowGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
+            ctx.fillStyle = shadowGrad;
+            ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill();
+
+            ctx.restore();
+        });
+    }
+
+    function draw() {
+        updateEnvironment();
+
+        // 1. 背景グラデーション
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, currentEnv.bgTop); gradient.addColorStop(0.5, currentEnv.bgMid); gradient.addColorStop(1, currentEnv.bgBottom);
+        ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 2. 星
+        if (currentEnv.starA > 0) {
+            stars.forEach(s => {
+                let twinkle = (Math.random() > 0.95) ? 0.3 : 1;
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(currentEnv.starA, 1) * twinkle})`; ctx.fillRect(s.x, s.y, s.size, s.size);
+            });
+        }
+
+        let isSpace = false;
+        if (gameState === 'PLAYING' && score >= 18000) isSpace = true;
+        if ((gameState === 'TITLE' || gameState === 'INSTRUCTION') && highScore >= 18000) isSpace = true;
+        if (isSpace) drawPlanets();
+
+        // 3. 太陽と月
+        ctx.save();
+        if (currentEnv.sunA > 0) {
+            ctx.globalAlpha = currentEnv.sunA;
+            drawCelestial(sunImage, currentEnv.sunX, currentEnv.sunY, currentEnv.sunS, "#ffeb96", false);
+        }
+        if (currentEnv.moonA > 0) {
+            ctx.globalAlpha = currentEnv.moonA;
+            drawCelestial(moonImage, currentEnv.moonX, currentEnv.moonY, currentEnv.moonS, "#ffffff", true);
+        }
+        ctx.restore();
+
+        // 4. 山
+        if (currentEnv.mountainA > 0) {
+            ctx.fillStyle = `rgba(40, 20, 15, ${currentEnv.mountainA})`;
+            mountains.forEach(m => {
+                ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + m.w / 2, m.y - m.h); ctx.lineTo(m.x + m.w, m.y); ctx.fill();
+            });
+        }
+
+        // 5. 足場
+        platforms.forEach(pf => drawPlatform(pf));
+
+        if (gameState === 'TITLE' || gameState === 'INSTRUCTION') {
+            [...npcs].reverse().forEach(npc => {
+                drawCharacterImage(npc);
+                let nameColor = (RIVAL_TARGETS_DATA.find(r => r.name === npc.name) && highScore >= RIVAL_TARGETS_DATA.find(r => r.name === npc.name).score) ? '#ffd700' : 'white';
+                ctx.fillStyle = nameColor; ctx.font = "bold 16px 'Courier New'"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = "black";
+                ctx.strokeText(npc.name, npc.x + HITBOX_W / 2, npc.y - 15); ctx.fillText(npc.name, npc.x + HITBOX_W / 2, npc.y - 15);
+            });
+        }
+
+        if (gameState === 'PLAYING' || gameState === 'PAUSE') {
+            if (birdEvent.active) {
+                ctx.fillStyle = (frameCount % 10 < 5) ? "rgba(255, 0, 0, 0.6)" : "rgba(255, 0, 0, 0.2)";
+                let data = OBSTACLES[birdEvent.type];
+                let count = (birdEvent.type === 'bird') ? ((currentLevel >= 7) ? 3 : (currentLevel >= 4) ? 2 : 1) : 1;
+                let realH = data.h * data.scale;
+                
+                let laserHeight = count * (realH + 20) - 20; 
+                let laserY = birdEvent.targetY - laserHeight;
+                ctx.fillRect(0, laserY, canvas.width, laserHeight);
+            }
+
+            birds.forEach(b => {
+                let data = OBSTACLES[b.type];
+                let bSprite = (Math.floor(frameCount / 4) % 2 === 0) ? data.sprite1 : data.sprite2;
+                drawPixelSprite(bSprite, b.x, b.y, PALETTE, b.scale); 
+            });
+
+            if (activeRival) {
+                drawCharacterImage(activeRival);
+                ctx.fillStyle = "white"; ctx.font = "bold 16px 'Courier New'"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = "black";
+                ctx.strokeText(activeRival.data.name, activeRival.x + HITBOX_W / 2, activeRival.y - 15); ctx.fillText(activeRival.data.name, activeRival.x + HITBOX_W / 2, activeRival.y - 15);
+            }
+
+            drawCharacterImage(player);
+            
+            ctx.save();
+            playerJumpEffects.forEach(eff => { ctx.fillStyle = `rgba(255, 255, 255, ${eff.alpha})`; ctx.beginPath(); ctx.ellipse(eff.x, eff.y, eff.size, eff.size / 3, 0, 0, Math.PI * 2); ctx.fill(); });
+            ctx.restore();
+            
+            if (player.vy > 15) {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.8)"; ctx.fillRect(player.x + 5, player.y - 40, 3, 40); ctx.fillRect(player.x + 15, player.y - 30, 3, 30);
+            }
+
+            if (rainbowTimer > 0) {
+                ctx.save();
+                let progress = 1 - (rainbowTimer / 180);
+                
+                let grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                grad.addColorStop(0, "rgba(255, 0, 0, 0.45)");
+                grad.addColorStop(0.16, "rgba(255, 127, 0, 0.45)");
+                grad.addColorStop(0.33, "rgba(255, 255, 0, 0.45)");
+                grad.addColorStop(0.5, "rgba(0, 255, 0, 0.45)");
+                grad.addColorStop(0.66, "rgba(0, 0, 255, 0.45)");
+                grad.addColorStop(0.83, "rgba(75, 0, 130, 0.45)");
+                grad.addColorStop(1, "rgba(148, 0, 211, 0.45)");
+
+                ctx.fillStyle = grad;
+
+                let swipeWidth = canvas.width * 1.5; 
+                let xOffset = canvas.width - (progress * (canvas.width + swipeWidth));
+                
+                ctx.translate(xOffset, 0);
+                ctx.fillRect(0, 0, swipeWidth, canvas.height);
+                
+                ctx.restore();
+            }
+        }
+
+        if (gameState === 'GAMEOVER' && score >= 18000) {
+            ctx.save();
+            confettis.forEach(c => {
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.angle * Math.PI / 180);
+                ctx.fillStyle = c.color;
+                ctx.fillRect(-c.size/2, -c.size/2, c.size, c.size);
+                ctx.rotate(-c.angle * Math.PI / 180);
+                ctx.translate(-c.x, -c.y);
+            });
+            ctx.restore();
+        }
+
+        ctx.save();
+        clickEffects.forEach(eff => {
+            ctx.beginPath(); ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+            ctx.fillStyle = eff.isRight ? `rgba(52, 152, 219, ${eff.alpha * 0.5})` : `rgba(231, 76, 60, ${eff.alpha * 0.5})`; ctx.fill();
+            ctx.lineWidth = 3; ctx.strokeStyle = eff.isRight ? `rgba(41, 128, 185, ${eff.alpha})` : `rgba(192, 57, 43, ${eff.alpha})`; ctx.stroke();
+        });
+        ctx.restore();
+
+        if (gameState === 'INSTRUCTION') { ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    }
+
+    function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+
+    initTitleScreen(); requestAnimationFrame(gameLoop);
+
+</script>
+</body>
+</html>
