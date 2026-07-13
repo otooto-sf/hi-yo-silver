@@ -30,7 +30,7 @@
 
         .center-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
 
-        #titleScreen { display: block; top: 30%; }
+        #titleScreen { display: none; top: 35%; }
         #titleScreen h1 {
             color: #fff; font-size: clamp(32px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
             text-shadow: 4px 4px 0 #e74c3c, -2px -2px 0 #3498db; font-style: italic; white-space: nowrap;
@@ -96,16 +96,34 @@
 
         #loadingScreen { display: block; text-align: center; }
 
-        /* ランキング表示ボード */
-        .ranking-board {
-            margin: 15px auto; width: 95%; max-width: 480px; background: rgba(20,20,20,0.8);
-            border: 1px solid #444; border-radius: 6px; padding: 10px; box-sizing: border-box; text-align: left;
+        /* 左上に配置するランキング呼び出しボタン */
+        #btnShowRanking {
+            display: none;
+            position: absolute;
+            top: 3%;
+            left: 3%;
+            background-color: #f1c40f;
+            color: #000;
+            font-size: clamp(12px, 2vw, 16px);
+            padding: 8px 16px;
+            z-index: 10;
+            pointer-events: auto;
         }
-        .ranking-board h3 { color: #f1c40f; margin: 0 0 8px 0; text-align: center; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .ranking-list { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #ccc; line-height: 1.5; }
-        .ranking-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #222; }
+
+        /* モーダルポップアップ（ランキング表示用） */
+        #rankingModal {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 400; pointer-events: auto;
+        }
+        .ranking-board {
+            background: rgba(15,15,15,0.95); border: 2px solid #f1c40f; border-radius: 8px;
+            padding: 20px; width: 90%; max-width: 440px; box-sizing: border-box; text-align: left;
+        }
+        .ranking-board h3 { color: #f1c40f; margin: 0 0 15px 0; text-align: center; font-size: clamp(18px, 4vw, 24px); border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .ranking-list { list-style: none; padding: 0; margin: 0 0 20px 0; font-size: clamp(13px, 3vw, 16px); color: #ccc; line-height: 1.8; }
+        .ranking-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #333; padding: 2px 0; }
         .ranking-item:last-child { border-bottom: none; }
-        .ranking-rank { color: #e74c3c; font-weight: bold; width: 30px; }
+        .ranking-rank { color: #e74c3c; font-weight: bold; width: 40px; }
         .ranking-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .ranking-score { color: #ffd700; text-align: right; font-weight: bold; }
 
@@ -126,7 +144,7 @@
 <div id="gameContainer">
     <canvas id="gameCanvas" width="960" height="540"></canvas>
     <div id="uiLayer">
-        <!-- プリロード用ロード画面 -->
+        <!-- ロード画面 -->
         <div id="loadingScreen" class="center-msg">
             <h1 style="color: #fff; font-size: clamp(24px, 5vw, 40px); margin: 0 0 10px 0; font-weight: bold; text-shadow: 2px 2px 0 #000;">LOADING ASSETS</h1>
             <div style="width: clamp(150px, 40vw, 300px); height: 10px; background: #222; margin: 15px auto; border-radius: 5px; overflow: hidden; border: 2px solid #555;">
@@ -135,20 +153,27 @@
             <p id="loadingProgress" style="color: #888; font-size: clamp(12px, 2.5vw, 16px); margin: 0;">0%</p>
         </div>
 
-        <!-- タイトル画面 -->
+        <!-- タイトル画面 (スッキリした状態) -->
         <div id="titleScreen" class="center-msg">
             <h1>High-Low Silver!</h1>
-            <!-- メインボード -->
-            <div class="ranking-board" style="pointer-events: auto;">
-                <h3>🏆 ONLINE LEADERBOARD 🏆</h3>
-                <ol id="titleRankingList" class="ranking-list">
-                    <div style="text-align: center; color: #666; font-size: 12px; padding: 10px 0;">LOADING TOP 10...</div>
-                </ol>
-            </div>
-            <p class="blink" style="margin-top: 10px;">TAP OR PRESS SPACE TO START</p>
+            <p class="blink" style="margin-top: 25px;">TAP OR PRESS SPACE TO START</p>
         </div>
         <div id="titleScoreBox" class="score-box" style="display: none;"><div id="highScoreDisplayTitle">HIGH SCORE: 0</div></div>
         
+        <!-- 左上のランキング呼び出しボタン -->
+        <button class="btn" id="btnShowRanking">RANKING [R]</button>
+
+        <!-- モーダルポップアップ（ランキング画面） -->
+        <div id="rankingModal">
+            <div class="ranking-board center-msg">
+                <h3>🏆 WORLD TOP 10 🏆</h3>
+                <ol id="modalRankingList" class="ranking-list">
+                    <div style="text-align: center; color: #666; font-size: 14px; padding: 20px 0;">LOADING SCORES...</div>
+                </ol>
+                <button class="btn" id="btnCloseRanking" style="width: 100%; background-color: #e74c3c;">CLOSE</button>
+            </div>
+        </div>
+
         <div id="instructionScreen" class="center-msg">
             <h2>HOW TO PLAY</h2>
             <p class="desc">
@@ -178,7 +203,7 @@
             <p id="finalLevelDisplay" class="go-info">LEVEL: 1</p>
             <p id="finalScore" class="go-info">SCORE: 0</p>
 
-            <!-- ワールドレコード登録パネル（基準スコアをクリアした場合に動的表示） -->
+            <!-- スコア投稿フォーム -->
             <div id="registerArea" style="display: none;">
                 <p>🏆 WORLD RECORD! REGISTER TO TOP 10 🏆</p>
                 <div class="register-inputs">
@@ -198,13 +223,12 @@
 <script>
     // ==========================================================
     // ▼ Cloudflare Workers URL の指定 ▼
-    // 作成したご自身の Workers のエンドポイントに置き換えてください
     // ==========================================================
     const RANKING_API_URL = "https://high-low-silver-api.your-username.workers.dev"; // ←ここを書き換えてください
 
     const DEBUG_INFINITE_JUMP = false; 
 
-    // アセットURL設定
+    // アセットURL
     const PLAYER_RUN_URLS = [
         "images/player_run0.png", "images/player_run1.png", "images/player_run2.png",
         "images/player_run3.png", "images/player_run4.png", "images/player_run5.png", "images/player_run6.png"
@@ -217,7 +241,7 @@
     ]; 
     const SYAPUFURA_JUMP_URL = "images/syapufura_jump.png";
 
-    // ototo -> otooto へ修正
+    // ototo -> otooto の修正
     const OTOOTO_RUN_URLS = [
         "images/otooto_run0.png", "images/otooto_run1.png", "images/otooto_run2.png",
         "images/otooto_run3.png", "images/otooto_run4.png", "images/otooto_run5.png", "images/otooto_run6.png"
@@ -257,7 +281,7 @@
     
     const playerImages = { run: [], jump: new Image() };
     const syapufuraImages = { run: [], jump: new Image() };
-    const otootoImages = { run: [], jump: new Image() }; // ototo -> otooto
+    const otootoImages = { run: [], jump: new Image() }; 
     const kojitatsuImages = { run: [], jump: new Image() };
     const sunImage = new Image();
     const moonImage = new Image();
@@ -269,7 +293,7 @@
         pauseIn: null, pauseOut: null, clear: null
     };
 
-    let cachedRanking = []; // 最新ランキング一時保持
+    let cachedRanking = []; 
 
     // ----------------------------------------------------------
     // ▼ 一括アセットプリローダー ▼
@@ -280,8 +304,8 @@
             { type: 'playerJump', url: PLAYER_JUMP_URL, target: playerImages.jump },
             { type: 'syapuRun', urls: SYAPUFURA_RUN_URLS, target: syapufuraImages.run },
             { type: 'syapuJump', url: SYAPUFURA_JUMP_URL, target: syapufuraImages.jump },
-            { type: 'otootoRun', urls: OTOOTO_RUN_URLS, target: otootoImages.run }, // ototo -> otooto
-            { type: 'otootoJump', url: OTOOTO_JUMP_URL, target: otootoImages.jump }, // ototo -> otooto
+            { type: 'otootoRun', urls: OTOOTO_RUN_URLS, target: otootoImages.run }, 
+            { type: 'otootoJump', url: OTOOTO_JUMP_URL, target: otootoImages.jump }, 
             { type: 'kojiRun', urls: KOJITATSU_RUN_URLS, target: kojitatsuImages.run },
             { type: 'kojiJump', url: KOJITATSU_JUMP_URL, target: kojitatsuImages.jump },
             { type: 'sun', url: SUN_IMG_URL, target: sunImage },
@@ -386,7 +410,6 @@
             audioSE.horseRun.volume = 0.3; 
         }
 
-        // 初期ロード時に1度サーバーからランキング情報を取得する
         await fetchRankingList();
 
         document.getElementById('loadingScreen').style.display = 'none';
@@ -400,22 +423,21 @@
     async function fetchRankingList() {
         try {
             const response = await fetch(RANKING_API_URL);
-            if (!response.ok) throw new Error("Server response error");
+            if (!response.ok) throw new Error("Server error");
             cachedRanking = await response.json();
             renderRankingUI();
         } catch (e) {
             console.warn("Could not retrieve ranking: ", e);
-            document.getElementById('titleRankingList').innerHTML = `<div style="text-align: center; color: #7f8c8d; font-size: 11px; padding: 10px 0;">[OFFLINE] OFFLINE MODE</div>`;
+            document.getElementById('modalRankingList').innerHTML = `<div style="text-align: center; color: #7f8c8d; font-size: 13px; padding: 20px 0;">[OFFLINE] NETWORK ERROR</div>`;
         }
     }
 
-    // ランキング情報をDOMへ挿入
     function renderRankingUI() {
-        const titleList = document.getElementById('titleRankingList');
-        titleList.innerHTML = "";
+        const modalList = document.getElementById('modalRankingList');
+        modalList.innerHTML = "";
         
-        if (cachedRanking.length === 0) {
-            titleList.innerHTML = `<div style="text-align: center; color: #888; font-size: 12px; padding: 10px 0;">NO SCORE REGISTERED</div>`;
+        if (!Array.isArray(cachedRanking) || cachedRanking.length === 0) {
+            modalList.innerHTML = `<div style="text-align: center; color: #888; font-size: 14px; padding: 20px 0;">NO SCORE REGISTERED</div>`;
             return;
         }
 
@@ -427,20 +449,23 @@
                 <span class="ranking-name">${item.name}</span>
                 <span class="ranking-score">${item.score}</span>
             `;
-            titleList.appendChild(li);
+            modalList.appendChild(li);
         });
     }
 
-    // ランクインの適性チェック
+    // 安全策（APIエラー時も例外を出さず進行するエラープロテクション）
     function checkRankingQualify(playerScore) {
-        if (playerScore <= 0) return false;
-        // ランキング総数が10未満、または10位のスコアより大きい場合は登録資格あり
-        if (cachedRanking.length < 10) return true;
-        const lastItem = cachedRanking[cachedRanking.length - 1];
-        return playerScore > lastItem.score;
+        try {
+            if (playerScore <= 0) return false;
+            if (!Array.isArray(cachedRanking) || cachedRanking.length === 0) return true;
+            if (cachedRanking.length < 10) return true;
+            const lastItem = cachedRanking[cachedRanking.length - 1];
+            return playerScore > lastItem.score;
+        } catch (e) {
+            return false; // エラー時は処理をスルーしてフリーズを回避
+        }
     }
 
-    // スコア投稿処理
     async function submitScore() {
         const inputField = document.getElementById('regName');
         const name = inputField.value.trim();
@@ -466,22 +491,37 @@
             if (result.success) {
                 cachedRanking = result.ranking;
                 renderRankingUI();
-                alert("ランキングに登録されました！");
+                alert("ワールドランキングに登録されました！");
                 document.getElementById('registerArea').style.display = 'none';
             } else {
                 alert("送信に失敗しました。");
             }
         } catch (e) {
             console.error(e);
-            alert("通信環境の不具合により送信できませんでした。");
+            alert("通信エラーが発生しました。");
         } finally {
             btnSubmit.disabled = false;
             btnSubmit.innerText = "SUBMIT";
         }
     }
 
-    // イベント登録
+    // ----------------------------------------------------------
+    // ▼ ランキングポップアップ（モーダル）制御処理 ▼
+    // ----------------------------------------------------------
+    async function openRanking() {
+        document.getElementById('rankingModal').style.display = 'block';
+        document.getElementById('modalRankingList').innerHTML = `<div style="text-align: center; color: #666; font-size: 14px; padding: 20px 0;">LOADING SCORES...</div>`;
+        await fetchRankingList();
+    }
+
+    function closeRanking() {
+        document.getElementById('rankingModal').style.display = 'none';
+    }
+
+    // ボタンにイベントハンドラーを定義
     document.getElementById('btnSubmit').addEventListener('click', submitScore);
+    document.getElementById('btnShowRanking').addEventListener('click', openRanking);
+    document.getElementById('btnCloseRanking').addEventListener('click', closeRanking);
 
     // ----------------------------------------------------------
 
@@ -640,7 +680,6 @@
         }
     }
 
-    // ototo -> otooto の修正
     const RIVAL_TARGETS_DATA = [
         { name: 'しゃぷふら', score: 18000, appearScore: 12000, color: 'linear-gradient(to right, #E53935, #1976D2)', isGradient: true, imgObj: syapufuraImages }, 
         { name: 'おとーと',   score: 10000, appearScore: 7000,  color: '#FDD835', isGradient: false, imgObj: otootoImages }, 
@@ -818,10 +857,33 @@
 
     window.addEventListener('keydown', (e) => {
         if (gameState === 'LOADING') return;
+        
+        // ▼ 文字入力中の操作キー割り込みを防ぐ安全チェック
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            if (e.key === 'Enter') {
+                submitScore();
+            }
+            return; // テキスト入力中はゲームの操作を完全に遮断
+        }
+
         const key = e.key.toLowerCase();
         if (key === 'e' && gameState === 'TITLE') { tryResetHighScore(); return; }
         if (key === 'f') doJump();
         if (key === 's') doStomp();
+        
+        // [R] キーでランキングの開閉
+        if (key === 'r') {
+            if (gameState === 'TITLE') {
+                const modal = document.getElementById('rankingModal');
+                if (modal.style.display === 'block') {
+                    closeRanking();
+                } else {
+                    openRanking();
+                }
+            }
+            return;
+        }
+
         if (key === ' ' || key === 'enter') {
             if(gameState === 'PLAYING' || gameState === 'PAUSE') togglePause(); else doStartOrRetry();
         }
@@ -919,9 +981,13 @@
         titleScreen.style.display = 'block'; titleScoreBox.style.display = 'block';
         instructionScreen.style.display = 'none'; playingUI.style.display = 'none';
         gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none'; inGameMessage.style.display = 'none';
+        document.getElementById('rankingModal').style.display = 'none'; 
+        
+        // タイトル表示時に左上のランキングボタンを表示
+        document.getElementById('btnShowRanking').style.display = 'block';
+
         clickEffects = []; playerJumpEffects = []; hasPassedRainbow = false; rainbowTimer = 0;
         
-        // 最新のランキングデータを同期
         fetchRankingList();
 
         let targetVisualScore = 0;
@@ -942,7 +1008,6 @@
         }
         player.x = -100;
         
-        // ototo -> otooto へオブジェクト差し替え
         npcs = [
             { name: 'しゃぷふら', targetScore: 18000, x: 650, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, oldY: 200, jumpCount: 0, maxJumps: 10, delay: 0, images: syapufuraImages },
             { name: 'おとーと',   targetScore: 10000, x: 450, y: 200, w: HITBOX_W, h: HITBOX_H, vy: 0, oldY: 200, jumpCount: 0, maxJumps: 10, delay: 20, images: otootoImages },
@@ -952,7 +1017,9 @@
     }
 
     function showInstruction() {
+        if (document.getElementById('rankingModal').style.display === 'block') return;
         gameState = 'INSTRUCTION'; titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'block';
+        document.getElementById('btnShowRanking').style.display = 'none'; // 他画面遷移時はランキングボタン非表示
     }
 
     function startGame() {
@@ -972,6 +1039,7 @@
         titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'none';
         playingUI.style.display = 'block'; gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none';
         levelUpMessage.style.display = 'none'; warningDisplay.style.display = 'none'; inGameMessage.style.display = 'none';
+        document.getElementById('btnShowRanking').style.display = 'none'; // ゲーム開始時は非表示
 
         initMountains();
         platforms = [ createPlatform(0, 400, 1200, canvas.height - 400 + 50, 'cliff') ];
@@ -982,21 +1050,41 @@
         inGameMessage.style.display = 'block'; inGameMsgTimer = 180; 
     }
 
+    function checkRivalDefeat(finalScore) {
+        rivalDefeatMsg.style.display = 'none'; syapufurarMsg.style.display = 'none'; smallStepMsg.style.display = 'none';
+        rivalDefeatMsg.innerText = '';
+
+        if (finalScore >= 18000) {
+            syapufurarMsg.innerText = "👑 月に到着した！あなたは最速のしゃぷふらーだ！ 👑";
+            syapufurarMsg.style.display = 'block'; 
+            smallStepMsg.style.display = 'block';
+            applyTextColor(syapufurarMsg, 'linear-gradient(to right, #E53935, #1976D2)', true);
+        } else if (finalScore >= 10000) {
+            rivalDefeatMsg.innerText = "こじたつとおとーとを超えた！";
+            applyTextColor(rivalDefeatMsg, '#FDD835', false);
+            rivalDefeatMsg.style.display = 'block';
+        } else if (finalScore >= 5000) {
+            rivalDefeatMsg.innerText = "こじたつを超えた！";
+            applyTextColor(rivalDefeatMsg, '#4CAF50', false);
+            rivalDefeatMsg.style.display = 'block';
+        }
+    }
+
     function gameOver(cause, color) {
         if (audioSE.horseRun) { audioSE.horseRun.pause(); }
 
         gameState = 'GAMEOVER'; 
         playingUI.style.display = 'none'; inGameMessage.style.display = 'none';
+        document.getElementById('btnShowRanking').style.display = 'none'; // ゲームオーバー時もランキングボタン非表示
         
         if (saveHighScore()) newRecordMsg.style.display = 'block'; else newRecordMsg.style.display = 'none';
         checkRivalDefeat(score);
 
         finalLevelDisplay.innerText = `LEVEL: ${currentLevel}`; finalScoreDisplay.innerText = `SCORE: ${score}`;
         
-        // ワールドレコード登録判定
         const regArea = document.getElementById('registerArea');
         if (checkRankingQualify(score)) {
-            document.getElementById('regName').value = ""; // 入力フィールドクリア
+            document.getElementById('regName').value = ""; 
             regArea.style.display = "block";
         } else {
             regArea.style.display = "none";
@@ -1290,7 +1378,6 @@
         platforms.forEach(pf => {
             pf.x -= gameSpeed;
             const px = player.x, pw = player.w;
-            // キャラクターワープ・浮遊の修正箇所
             if (px < pf.x + pf.w && px + pw > pf.x) {
                 if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
                     player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
