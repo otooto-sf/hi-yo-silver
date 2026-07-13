@@ -11,7 +11,6 @@
             height: 100vh; font-family: 'Courier New', Courier, monospace;
             overflow: hidden; user-select: none; touch-action: none; 
         }
-        /* 横画面での見切れ・途切れを防止するモダンなアスペクト比計算 */
         #gameContainer {
             position: relative; 
             aspect-ratio: 16 / 9;
@@ -104,7 +103,7 @@
 
         #loadingScreen { display: block; text-align: center; }
 
-        /* 左上に配置するランキング呼び出しボタン（画面の幅に応じて自動で極小サイズまで縮小するレスポンシブ設計） */
+        /* 左上に配置するランキング呼び出しボタン */
         #btnShowRanking {
             display: none;
             position: absolute;
@@ -119,13 +118,34 @@
             border-radius: 4px;
         }
 
-        /* 縦アスペクト（スマホ縦画面など）用に、重なりをさらに防ぐ追加の微調整 */
+        /* 右下に配置する全画面表示切り替えボタン */
+        #btnFullscreen {
+            display: none;
+            position: absolute;
+            bottom: 3%;
+            right: 3%;
+            background-color: #34495e;
+            color: #fff;
+            font-size: clamp(10px, 1.8vw, 16px);
+            padding: clamp(6px, 1.2vw, 10px) clamp(10px, 2vw, 20px);
+            z-index: 10;
+            pointer-events: auto;
+            border-radius: 4px;
+        }
+
+        /* 縦画面用デザイン調整 */
         @media (max-aspect-ratio: 1/1) {
             #btnShowRanking {
                 font-size: 10px;
                 padding: 4px 8px;
                 top: 2%;
                 left: 2%;
+            }
+            #btnFullscreen {
+                font-size: 10px;
+                padding: 4px 8px;
+                bottom: 2%;
+                right: 2%;
             }
         }
 
@@ -181,6 +201,9 @@
         
         <!-- 左上のランキング呼び出しボタン -->
         <button class="btn" id="btnShowRanking">RANKING [R]</button>
+
+        <!-- 右下の全画面切り替えボタン -->
+        <button class="btn" id="btnFullscreen">FULLSCREEN</button>
 
         <!-- モーダルポップアップ（ランキング画面） -->
         <div id="rankingModal">
@@ -243,7 +266,7 @@
     // ==========================================================
     // ▼ Cloudflare Workers URL の指定 ▼
     // ==========================================================
-    const RANKING_API_URL = "https://hiyosilverkv.otooto.workers.dev";
+    const RANKING_API_URL = "https://hiyosilverkv.otooto.workers.dev"; // ←ここを書き換えてください
 
     const DEBUG_INFINITE_JUMP = false; 
 
@@ -525,6 +548,71 @@
     function closeRanking() {
         document.getElementById('rankingModal').style.display = 'none';
     }
+
+    // ----------------------------------------------------------
+    // ▼ 全画面表示（フルスクリーン）制御システム ▼
+    // ----------------------------------------------------------
+    const gameContainer = document.getElementById('gameContainer');
+    const btnFullscreen = document.getElementById('btnFullscreen');
+
+    function toggleFullscreen() {
+        playSound(audioSE.button);
+        
+        // すべてのブラウザ（iOS Safari含む）のフルスクリーン判定に対応
+        const isFullscreen = document.fullscreenElement || 
+                             document.webkitFullscreenElement || 
+                             document.mozFullScreenElement || 
+                             document.msFullscreenElement;
+
+        if (!isFullscreen) {
+            // フルスクリーン化の実行
+            if (gameContainer.requestFullscreen) {
+                gameContainer.requestFullscreen();
+            } else if (gameContainer.webkitRequestFullscreen) {
+                gameContainer.webkitRequestFullscreen(); // iOS Safari用
+            } else if (gameContainer.mozRequestFullScreen) {
+                gameContainer.mozRequestFullScreen();
+            } else if (gameContainer.msRequestFullscreen) {
+                gameContainer.msRequestFullscreen();
+            }
+        } else {
+            // フルスクリーン解除の実行
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen(); // iOS Safari用
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+
+    // フルスクリーンの状態変化を検知してボタンテキストを書き換える
+    function handleFullscreenChange() {
+        const isFullscreen = document.fullscreenElement || 
+                             document.webkitFullscreenElement || 
+                             document.mozFullScreenElement || 
+                             document.msFullscreenElement;
+                             
+        if (isFullscreen) {
+            btnFullscreen.innerText = "EXIT FULLSCREEN";
+            btnFullscreen.style.backgroundColor = "#e74c3c"; // 解除時は赤色っぽく
+        } else {
+            btnFullscreen.innerText = "FULLSCREEN";
+            btnFullscreen.style.backgroundColor = "#34495e"; // 通常時は青灰色
+        }
+    }
+
+    // 各種ブラウザ用のイベントを登録
+    btnFullscreen.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    // ----------------------------------------------------------
 
     document.getElementById('btnSubmit').addEventListener('click', submitScore);
     document.getElementById('btnShowRanking').addEventListener('click', openRanking);
@@ -987,6 +1075,7 @@
         document.getElementById('rankingModal').style.display = 'none'; 
         
         document.getElementById('btnShowRanking').style.display = 'block';
+        document.getElementById('btnFullscreen').style.display = 'block'; // タイトル表示時に全画面ボタンを表示
 
         clickEffects = []; playerJumpEffects = []; hasPassedRainbow = false; rainbowTimer = 0;
         
@@ -1022,6 +1111,7 @@
         if (document.getElementById('rankingModal').style.display === 'block') return;
         gameState = 'INSTRUCTION'; titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'block';
         document.getElementById('btnShowRanking').style.display = 'none'; 
+        document.getElementById('btnFullscreen').style.display = 'none'; 
     }
 
     function startGame() {
@@ -1042,6 +1132,7 @@
         playingUI.style.display = 'block'; gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none';
         levelUpMessage.style.display = 'none'; warningDisplay.style.display = 'none'; inGameMessage.style.display = 'none';
         document.getElementById('btnShowRanking').style.display = 'none'; 
+        document.getElementById('btnFullscreen').style.display = 'none'; 
 
         initMountains();
         platforms = [ createPlatform(0, 400, 1200, canvas.height - 400 + 50, 'cliff') ];
@@ -1078,6 +1169,7 @@
         gameState = 'GAMEOVER'; 
         playingUI.style.display = 'none'; inGameMessage.style.display = 'none';
         document.getElementById('btnShowRanking').style.display = 'none'; 
+        document.getElementById('btnFullscreen').style.display = 'none'; 
         
         if (saveHighScore()) newRecordMsg.style.display = 'block'; else newRecordMsg.style.display = 'none';
         checkRivalDefeat(score);
