@@ -122,21 +122,6 @@
             border-radius: 4px;
         }
 
-        /* 右下に配置する全画面表示切り替えボタン */
-        #btnFullscreen {
-            display: none;
-            position: absolute;
-            bottom: 3%;
-            right: 3%;
-            background-color: #34495e;
-            color: #fff;
-            font-size: clamp(10px, 1.8vw, 16px);
-            padding: clamp(6px, 1.2vw, 10px) clamp(10px, 2vw, 20px);
-            z-index: 10;
-            pointer-events: auto;
-            border-radius: 4px;
-        }
-
         /* 縦画面用デザイン調整 */
         @media (max-aspect-ratio: 1/1) {
             #btnShowRanking {
@@ -144,12 +129,6 @@
                 padding: 4px 8px;
                 top: 2%;
                 left: 2%;
-            }
-            #btnFullscreen {
-                font-size: 10px;
-                padding: 4px 8px;
-                bottom: 2%;
-                right: 2%;
             }
         }
 
@@ -205,9 +184,6 @@
         
         <!-- 左上のランキング呼び出しボタン -->
         <button class="btn" id="btnShowRanking">RANKING [R]</button>
-
-        <!-- 右下の全画面切り替えボタン -->
-        <button class="btn" id="btnFullscreen">FULLSCREEN</button>
 
         <!-- モーダルポップアップ（ランキング画面） -->
         <div id="rankingModal">
@@ -552,96 +528,6 @@
     function closeRanking() {
         document.getElementById('rankingModal').style.display = 'none';
     }
-
-    // ----------------------------------------------------------
-    // ▼ 全画面表示（フルスクリーン）制御システム＆Safari擬似フルスクリーン対策 ▼
-    // ----------------------------------------------------------
-    const gameContainer = document.getElementById('gameContainer');
-    const btnFullscreen = document.getElementById('btnFullscreen');
-    let isSimulatedFullscreen = false; 
-
-    function simulateFullscreen(enable) {
-        if (enable) {
-            isSimulatedFullscreen = true;
-            gameContainer.style.position = 'fixed';
-            gameContainer.style.top = '0';
-            gameContainer.style.left = '0';
-            gameContainer.style.width = '100vw';
-            gameContainer.style.height = '100dvh'; 
-            gameContainer.style.zIndex = '9999';
-            btnFullscreen.innerText = "EXIT FULLSCREEN";
-            btnFullscreen.style.backgroundColor = "#e74c3c";
-        } else {
-            isSimulatedFullscreen = false;
-            gameContainer.style.position = 'relative';
-            gameContainer.style.top = 'auto';
-            gameContainer.style.left = 'auto';
-            gameContainer.style.width = '100%';
-            gameContainer.style.height = 'auto';
-            gameContainer.style.zIndex = '1';
-            btnFullscreen.innerText = "FULLSCREEN";
-            btnFullscreen.style.backgroundColor = "#34495e";
-        }
-    }
-
-    function toggleFullscreen() {
-        playSound(audioSE.button);
-        
-        const isFullscreen = document.fullscreenElement || 
-                             document.webkitFullscreenElement || 
-                             document.mozFullScreenElement || 
-                             document.msFullscreenElement;
-
-        if (!isFullscreen && !isSimulatedFullscreen) {
-            try {
-                if (gameContainer.requestFullscreen) {
-                    gameContainer.requestFullscreen();
-                } else if (gameContainer.webkitRequestFullscreen) {
-                    gameContainer.webkitRequestFullscreen(); 
-                } else {
-                    simulateFullscreen(true);
-                }
-            } catch (e) {
-                simulateFullscreen(true);
-            }
-        } else {
-            try {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else {
-                    simulateFullscreen(false);
-                }
-            } catch (e) {
-                simulateFullscreen(false);
-            }
-            simulateFullscreen(false); 
-        }
-    }
-
-    function handleFullscreenChange() {
-        const isFullscreen = document.fullscreenElement || 
-                             document.webkitFullscreenElement || 
-                             document.mozFullScreenElement || 
-                             document.msFullscreenElement;
-                             
-        if (isFullscreen) {
-            btnFullscreen.innerText = "EXIT FULLSCREEN";
-            btnFullscreen.style.backgroundColor = "#e74c3c";
-        } else if (!isSimulatedFullscreen) {
-            btnFullscreen.innerText = "FULLSCREEN";
-            btnFullscreen.style.backgroundColor = "#34495e";
-        }
-    }
-
-    btnFullscreen.addEventListener('click', toggleFullscreen);
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    // ----------------------------------------------------------
 
     document.getElementById('btnSubmit').addEventListener('click', submitScore);
     document.getElementById('btnShowRanking').addEventListener('click', openRanking);
@@ -1104,7 +990,6 @@
         document.getElementById('rankingModal').style.display = 'none'; 
         
         document.getElementById('btnShowRanking').style.display = 'block';
-        document.getElementById('btnFullscreen').style.display = 'block'; 
 
         clickEffects = []; playerJumpEffects = []; hasPassedRainbow = false; rainbowTimer = 0;
         
@@ -1140,7 +1025,6 @@
         if (document.getElementById('rankingModal').style.display === 'block') return;
         gameState = 'INSTRUCTION'; titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'block';
         document.getElementById('btnShowRanking').style.display = 'none'; 
-        document.getElementById('btnFullscreen').style.display = 'none'; 
     }
 
     function startGame() {
@@ -1161,7 +1045,6 @@
         playingUI.style.display = 'block'; gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none';
         levelUpMessage.style.display = 'none'; warningDisplay.style.display = 'none'; inGameMessage.style.display = 'none';
         document.getElementById('btnShowRanking').style.display = 'none'; 
-        document.getElementById('btnFullscreen').style.display = 'none'; 
 
         initMountains();
         platforms = [ createPlatform(0, 400, 1200, canvas.height - 400 + 50, 'cliff') ];
@@ -1198,7 +1081,6 @@
         gameState = 'GAMEOVER'; 
         playingUI.style.display = 'none'; inGameMessage.style.display = 'none';
         document.getElementById('btnShowRanking').style.display = 'none'; 
-        document.getElementById('btnFullscreen').style.display = 'none'; 
         
         if (saveHighScore()) newRecordMsg.style.display = 'block'; else newRecordMsg.style.display = 'none';
         checkRivalDefeat(score);
@@ -1551,7 +1433,7 @@
             checkLevelUp(); 
         }
         
-        // ▼ 消失していた「レベルアップ画面」および「文字割り込み」のタイマー加算処理を復元しました
+        // レベルアップ画面及び割り込み文字のタイマーカウントダウンと非表示への切替処理
         if (levelUpTimer > 0) { 
             levelUpTimer--; 
             levelUpMessage.style.display = 'block'; 
@@ -1617,7 +1499,7 @@
         }
 
         const targetW = 90; 
-        const aspectRatio = imgToDraw.naturalHeight / imgToDraw.naturalWidth; 
+        const aspectRatio = imgToDraw.naturalWidth / imgToDraw.naturalWidth; 
         const targetH = targetW * aspectRatio;
 
         const offsetX = (cw - targetW) / 2; 
@@ -1741,7 +1623,7 @@
                 let r = size;
                 ctx.beginPath(); ctx.arc(x - r*0.3, y - r*0.2, r*0.15, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + r*0.4, y + r*0.1, r*0.2, 0, Math.PI*2); ctx.fill();
-                // 構文エラーを修正しました (セミコロンをカンマに修正)
+                // 構文エラーを確実にカンマ（,）に修正・安定化しました
                 ctx.beginPath(); ctx.arc(x - r*0.1, y + r*0.4, r*0.1, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + r*0.2, y - r*0.4, r*0.12, 0, Math.PI*2); ctx.fill();
             }
