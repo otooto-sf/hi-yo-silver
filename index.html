@@ -21,21 +21,21 @@
         #playingUI { display: none; }
         
         .score-box { position: absolute; top: 3%; right: 3%; text-align: right; text-shadow: 2px 2px 0 #000; pointer-events: auto; }
-        #scoreDisplay { font-size: clamp(14px, 3vw, 24px); color: white; font-weight: bold; }
-        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(10px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
+        #scoreDisplay { font-size: clamp(16px, 3vw, 24px); color: white; font-weight: bold; }
+        #highScoreDisplayTitle, #highScoreDisplayPlay { font-size: clamp(12px, 2vw, 16px); color: #f1c40f; font-weight: bold; margin-bottom: 5px; transition: color 0.3s; }
 
         #leftUIBox { position: absolute; top: 3%; left: 3%; pointer-events: auto; }
-        #levelDisplay { font-size: clamp(14px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
-        #jumpDisplay { font-size: clamp(10px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
+        #levelDisplay { font-size: clamp(16px, 3vw, 24px); color: #4CAF50; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+        #jumpDisplay { font-size: clamp(12px, 2.5vw, 18px); color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; margin-top: 5px; }
 
         .center-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
 
         #titleScreen { display: none; top: 35%; }
         #titleScreen h1 {
-            color: #fff; font-size: clamp(28px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
+            color: #fff; font-size: clamp(32px, 6vw, 70px); margin: 0 0 10px 0; letter-spacing: 2px;
             text-shadow: 4px 4px 0 #e74c3c, -2px -2px 0 #3498db; font-style: italic; white-space: nowrap;
         }
-        .blink { color: #fff; font-size: clamp(14px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
+        .blink { color: #fff; font-size: clamp(16px, 3vw, 24px); animation: blinker 1s linear infinite; text-shadow: 2px 2px 0 #000; margin-top: 20px; }
         @keyframes blinker { 50% { opacity: 0; } }
 
         #instructionScreen {
@@ -43,8 +43,8 @@
             border-radius: 12px; border: 2px solid #3498db; width: 85%; max-width: 700px;
             box-sizing: border-box; backdrop-filter: blur(2px);
         }
-        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(20px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
-        #instructionScreen p.desc { color: white; font-size: clamp(12px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
+        #instructionScreen h2 { color: #f1c40f; margin-top: 0; margin-bottom: 15px; font-size: clamp(24px, 5vw, 36px); text-shadow: 2px 2px 0 #000; }
+        #instructionScreen p.desc { color: white; font-size: clamp(14px, 3vw, 20px); text-align: center; line-height: 1.6; margin-bottom: 20px; text-shadow: 1px 1px 0 #000; }
 
         #levelUpMessage {
             display: none; font-size: clamp(24px, 5vw, 36px); color: #00ffff; font-weight: bold;
@@ -58,7 +58,7 @@
         }
 
         #warningDisplay {
-            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(18px, 4vw, 28px); color: #ff3333;
+            display: none; position: absolute; top: 15%; right: 3%; font-size: clamp(20px, 4vw, 28px); color: #ff3333;
             font-weight: bold; text-shadow: 2px 2px 0 #000, 0 0 10px #ff0000; animation: fastblink 0.15s infinite alternate;
         }
         @keyframes fastblink { from { opacity: 1; transform: scale(1); } to { opacity: 0.2; transform: scale(1.05); } }
@@ -70,16 +70,16 @@
             display: none; background: rgba(0, 0, 0, 0.9); padding: 25px 20px; border-radius: 8px;
             border: 2px solid #ff5252; width: 90%; max-width: 800px; box-sizing: border-box; pointer-events: auto; z-index: 300;
         }
-        #gameOverScreen h1 { color: #ff5252; margin: 0 0 10px 0; font-size: clamp(24px, 6vw, 48px); white-space: nowrap; }
+        #gameOverScreen h1 { color: #ff5252; margin: 0 0 10px 0; font-size: clamp(28px, 6vw, 48px); white-space: nowrap; }
 
         @keyframes pulseScale { from { transform: scale(1); } to { transform: scale(1.1); } }
-        #newRecordMsg { display: none; color: #f1c40f; font-weight: bold; font-size: clamp(14px, 4vw, 28px); margin: 5px 0; white-space: nowrap; animation: pulseScale 0.5s ease infinite alternate; }
-        .go-info { font-size: clamp(16px, 4vw, 32px); color: white; font-weight: bold; margin: 5px 0; white-space: nowrap; }
+        #newRecordMsg { display: none; color: #f1c40f; font-weight: bold; font-size: clamp(16px, 4vw, 28px); margin: 5px 0; white-space: nowrap; animation: pulseScale 0.5s ease infinite alternate; }
+        .go-info { font-size: clamp(18px, 4vw, 32px); color: white; font-weight: bold; margin: 5px 0; white-space: nowrap; }
         
-        #rivalDefeatMsg, #syapufurarMsg { display: none; font-weight: bold; font-size: clamp(14px, 4vw, 28px); margin: 5px 0; text-shadow: 2px 2px 0 #000; animation: pulseScale 0.5s ease infinite alternate; }
+        #rivalDefeatMsg, #syapufurarMsg { display: none; font-weight: bold; font-size: clamp(18px, 4vw, 28px); margin: 5px 0; text-shadow: 2px 2px 0 #000; animation: pulseScale 0.5s ease infinite alternate; }
         
         #smallStepMsg {
-            display: none; color: #ecf0f1; font-size: clamp(14px, 3vw, 24px); font-family: 'Georgia', serif; font-style: italic; letter-spacing: 5px; margin: 5px 0 15px 0;
+            display: none; color: #ecf0f1; font-size: clamp(16px, 3vw, 24px); font-family: 'Georgia', serif; font-style: italic; letter-spacing: 5px; margin: 5px 0 15px 0;
             text-shadow: 0 0 5px #3498db, 0 0 10px #2980b9, 2px 2px 0 #000; animation: fadeInGlow 2s ease-in-out forwards;
         }
 
@@ -89,7 +89,7 @@
         }
 
         .btn-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
-        .btn { background-color: #3498db; color: white; border: 2px solid #fff; padding: 12px 24px; font-size: clamp(12px, 3vw, 20px); font-family: 'Courier New', Courier, monospace; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 2px 2px 0 #000; white-space: nowrap; }
+        .btn { background-color: #3498db; color: white; border: 2px solid #fff; padding: 12px 24px; font-size: clamp(14px, 3vw, 20px); font-family: 'Courier New', Courier, monospace; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 2px 2px 0 #000; white-space: nowrap; }
         .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 
         .instruction { position: absolute; bottom: 3%; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.6); font-size: clamp(10px, 2vw, 14px); text-shadow: 1px 1px 0 #000; }
@@ -104,21 +104,10 @@
             left: 3%;
             background-color: #f1c40f;
             color: #000;
-            font-size: clamp(10px, 1.8vw, 16px);
-            padding: clamp(6px, 1.2vw, 10px) clamp(10px, 2vw, 20px);
+            font-size: clamp(12px, 2vw, 16px);
+            padding: 8px 16px;
             z-index: 10;
             pointer-events: auto;
-            border-radius: 4px;
-        }
-
-        /* 縦画面用のデザイン調整 */
-        @media (max-width: 600px) {
-            #btnShowRanking {
-                font-size: 10px;
-                padding: 4px 8px;
-                top: 2%;
-                left: 2%;
-            }
         }
 
         /* モーダルポップアップ（ランキング表示用） */
@@ -130,8 +119,8 @@
             background: rgba(15,15,15,0.95); border: 2px solid #f1c40f; border-radius: 8px;
             padding: 20px; width: 90%; max-width: 440px; box-sizing: border-box; text-align: left;
         }
-        .ranking-board h3 { color: #f1c40f; margin: 0 0 15px 0; text-align: center; font-size: clamp(16px, 4vw, 24px); border-bottom: 2px solid #333; padding-bottom: 10px; }
-        .ranking-list { list-style: none; padding: 0; margin: 0 0 20px 0; font-size: clamp(12px, 3vw, 16px); color: #ccc; line-height: 1.8; }
+        .ranking-board h3 { color: #f1c40f; margin: 0 0 15px 0; text-align: center; font-size: clamp(18px, 4vw, 24px); border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .ranking-list { list-style: none; padding: 0; margin: 0 0 20px 0; font-size: clamp(13px, 3vw, 16px); color: #ccc; line-height: 1.8; }
         .ranking-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #333; padding: 2px 0; }
         .ranking-item:last-child { border-bottom: none; }
         .ranking-rank { color: #e74c3c; font-weight: bold; width: 40px; }
@@ -143,7 +132,7 @@
             background: rgba(46, 204, 113, 0.15); border: 2px dashed #2ecc71; border-radius: 8px;
             padding: 12px; margin: 15px auto; width: 95%; max-width: 450px; text-align: center;
         }
-        #registerArea p { color: #2ecc71; font-weight: bold; margin: 0 0 8px 0; font-size: clamp(12px, 3vw, 15px); }
+        #registerArea p { color: #2ecc71; font-weight: bold; margin: 0 0 8px 0; font-size: 15px; }
         .register-inputs { display: flex; justify-content: center; gap: 10px; align-items: center; }
         #regName { font-family: 'Courier New', Courier, monospace; padding: 6px; border: 2px solid #555; background: #222; color: #fff; width: 140px; text-align: center; font-size: 16px; border-radius: 4px; }
         #regName:focus { border-color: #2ecc71; outline: none; }
@@ -164,7 +153,7 @@
             <p id="loadingProgress" style="color: #888; font-size: clamp(12px, 2.5vw, 16px); margin: 0;">0%</p>
         </div>
 
-        <!-- タイトル画面 -->
+        <!-- タイトル画面 (スッキリした状態) -->
         <div id="titleScreen" class="center-msg">
             <h1>High-Low Silver!</h1>
             <p class="blink" style="margin-top: 25px;">TAP OR PRESS SPACE TO START</p>
@@ -235,7 +224,7 @@
     // ==========================================================
     // ▼ Cloudflare Workers URL の指定 ▼
     // ==========================================================
-    const RANKING_API_URL = "https://hiyosilverkv.otooto.workers.dev"; // ←ここを書き換えてください
+    const RANKING_API_URL = "https://high-low-silver-api.your-username.workers.dev"; // ←ここを書き換えてください
 
     const DEBUG_INFINITE_JUMP = false; 
 
@@ -252,6 +241,7 @@
     ]; 
     const SYAPUFURA_JUMP_URL = "images/syapufura_jump.png";
 
+    // ototo -> otooto の修正
     const OTOOTO_RUN_URLS = [
         "images/otooto_run0.png", "images/otooto_run1.png", "images/otooto_run2.png",
         "images/otooto_run3.png", "images/otooto_run4.png", "images/otooto_run5.png", "images/otooto_run6.png"
@@ -305,6 +295,9 @@
 
     let cachedRanking = []; 
 
+    // ----------------------------------------------------------
+    // ▼ 一括アセットプリローダー ▼
+    // ----------------------------------------------------------
     async function preloadAllAssets() {
         const imageAssets = [
             { type: 'playerRun', urls: PLAYER_RUN_URLS, target: playerImages.run },
@@ -424,6 +417,9 @@
         initTitleScreen();
     }
 
+    // ----------------------------------------------------------
+    // ▼ ランキングAPI通信処理 ▼
+    // ----------------------------------------------------------
     async function fetchRankingList() {
         try {
             const response = await fetch(RANKING_API_URL);
@@ -457,6 +453,7 @@
         });
     }
 
+    // 安全策（APIエラー時も例外を出さず進行するエラープロテクション）
     function checkRankingQualify(playerScore) {
         try {
             if (playerScore <= 0) return false;
@@ -465,7 +462,7 @@
             const lastItem = cachedRanking[cachedRanking.length - 1];
             return playerScore > lastItem.score;
         } catch (e) {
-            return false; 
+            return false; // エラー時は処理をスルーしてフリーズを回避
         }
     }
 
@@ -508,6 +505,9 @@
         }
     }
 
+    // ----------------------------------------------------------
+    // ▼ ランキングポップアップ（モーダル）制御処理 ▼
+    // ----------------------------------------------------------
     async function openRanking() {
         document.getElementById('rankingModal').style.display = 'block';
         document.getElementById('modalRankingList').innerHTML = `<div style="text-align: center; color: #666; font-size: 14px; padding: 20px 0;">LOADING SCORES...</div>`;
@@ -518,9 +518,12 @@
         document.getElementById('rankingModal').style.display = 'none';
     }
 
+    // ボタンにイベントハンドラーを定義
     document.getElementById('btnSubmit').addEventListener('click', submitScore);
     document.getElementById('btnShowRanking').addEventListener('click', openRanking);
     document.getElementById('btnCloseRanking').addEventListener('click', closeRanking);
+
+    // ----------------------------------------------------------
 
     function playSound(audioObj) {
         if (!audioObj) return;
@@ -855,11 +858,12 @@
     window.addEventListener('keydown', (e) => {
         if (gameState === 'LOADING') return;
         
+        // ▼ 文字入力中の操作キー割り込みを防ぐ安全チェック
         if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
             if (e.key === 'Enter') {
                 submitScore();
             }
-            return; 
+            return; // テキスト入力中はゲームの操作を完全に遮断
         }
 
         const key = e.key.toLowerCase();
@@ -867,6 +871,7 @@
         if (key === 'f') doJump();
         if (key === 's') doStomp();
         
+        // [R] キーでランキングの開閉
         if (key === 'r') {
             if (gameState === 'TITLE') {
                 const modal = document.getElementById('rankingModal');
@@ -978,6 +983,7 @@
         gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none'; inGameMessage.style.display = 'none';
         document.getElementById('rankingModal').style.display = 'none'; 
         
+        // タイトル表示時に左上のランキングボタンを表示
         document.getElementById('btnShowRanking').style.display = 'block';
 
         clickEffects = []; playerJumpEffects = []; hasPassedRainbow = false; rainbowTimer = 0;
@@ -1013,7 +1019,7 @@
     function showInstruction() {
         if (document.getElementById('rankingModal').style.display === 'block') return;
         gameState = 'INSTRUCTION'; titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'block';
-        document.getElementById('btnShowRanking').style.display = 'none'; 
+        document.getElementById('btnShowRanking').style.display = 'none'; // 他画面遷移時はランキングボタン非表示
     }
 
     function startGame() {
@@ -1033,7 +1039,7 @@
         titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'none';
         playingUI.style.display = 'block'; gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none';
         levelUpMessage.style.display = 'none'; warningDisplay.style.display = 'none'; inGameMessage.style.display = 'none';
-        document.getElementById('btnShowRanking').style.display = 'none'; 
+        document.getElementById('btnShowRanking').style.display = 'none'; // ゲーム開始時は非表示
 
         initMountains();
         platforms = [ createPlatform(0, 400, 1200, canvas.height - 400 + 50, 'cliff') ];
@@ -1069,7 +1075,7 @@
 
         gameState = 'GAMEOVER'; 
         playingUI.style.display = 'none'; inGameMessage.style.display = 'none';
-        document.getElementById('btnShowRanking').style.display = 'none'; 
+        document.getElementById('btnShowRanking').style.display = 'none'; // ゲームオーバー時もランキングボタン非表示
         
         if (saveHighScore()) newRecordMsg.style.display = 'block'; else newRecordMsg.style.display = 'none';
         checkRivalDefeat(score);
@@ -1247,12 +1253,7 @@
         if (gameState === 'TITLE' || gameState === 'INSTRUCTION') {
             mountains.forEach(m => { m.x -= TITLE_SPEED * 0.15; if (m.x + m.w < 0) m.x = canvas.width + Math.random() * 100; });
             platforms.forEach(pf => pf.x -= TITLE_SPEED);
-            
-            // タイトル画面中の古い足場の破棄処理を追加（メモリリークの解消）
-            if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) {
-                platforms.shift();
-            }
-            
+            if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) platforms.shift();
             generatePlatforms(TITLE_SPEED, 2, true);
 
             npcs.forEach((npc, index) => {
@@ -1299,6 +1300,74 @@
             return; 
         }
 
+        if (frameCount % 10 === 0) { 
+            score += 10; 
+            checkLevelUp(); 
+        }
+
+        if (levelUpTimer > 0) { levelUpTimer--; levelUpMessage.style.display = 'block'; } else levelUpMessage.style.display = 'none';
+        if (inGameMsgTimer > 0) { inGameMsgTimer--; if (inGameMsgTimer === 0) inGameMessage.style.display = 'none'; }
+
+        if (!activeRival) {
+            let nextRival = RIVAL_TARGETS_DATA.slice().reverse().find(r => score >= r.appearScore && score < r.score);
+            if (nextRival) {
+                playSound(audioSE.rivalAppear);
+
+                let initialPlatform = platforms[platforms.length - 1]; 
+                activeRival = { 
+                    data: nextRival, 
+                    x: canvas.width + 100, 
+                    y: initialPlatform ? initialPlatform.y - HITBOX_H : 200, 
+                    w: HITBOX_W, h: HITBOX_H,
+                    vy: 0, jumpCount: 0, state: 1, delay: Math.floor(Math.random() * 10), images: nextRival.imgObj 
+                };
+            }
+        } else {
+            let ar = activeRival;
+            if (ar.state === 1) {
+                ar.x -= (gameSpeed + 1); if (ar.x <= TARGET_X + 250) ar.state = 2;
+            } else if (ar.state === 2) {
+                let targetXRival = TARGET_X + 250;
+                if (ar.x < targetXRival) ar.x += 1; if (ar.x > targetXRival) ar.x -= 1;
+                if (score >= ar.data.score) { 
+                    ar.state = 3; 
+                    showInGameMessage(`${ar.data.name}を超えた！`, ar.data.color, ar.data.isGradient); 
+                    if (ar.data.name === 'しゃぷふら') playSound(audioSE.bossPass);
+                    else playSound(audioSE.rivalPass);
+                }
+            } else if (ar.state === 3) {
+                ar.x -= (gameSpeed + 3); if (ar.x < -150) activeRival = null;
+            }
+
+            if (activeRival) {
+                let absVy = Math.abs(ar.vy); let gMult = 1.0;
+                if (absVy < 6.0) gMult = 0.2 + (0.8 * (absVy / 6.0));
+                ar.vy += BASE_GRAVITY * gMult; ar.y += ar.vy;
+
+                let arGrounded = false, onPlatform = null, platformBelow = false;
+                platforms.forEach(pf => {
+                    const px = ar.x, pw = HITBOX_W;
+                    if (ar.x + HITBOX_W > pf.x && ar.x < pf.x + pf.w) platformBelow = true;
+                    if (px < pf.x + pf.w && px + pw > pf.x) {
+                        if (ar.vy >= 0 && ar.oldY + HITBOX_H <= pf.y + ar.vy + 20 && ar.y + HITBOX_H >= pf.y) {
+                            ar.y = pf.y - HITBOX_H; ar.vy = 0; ar.jumpCount = 0; arGrounded = true; onPlatform = pf;
+                        } else if (ar.y + HITBOX_H > pf.y && ar.y < pf.y + pf.h) {
+                            ar.x = pf.x - pw - 2; 
+                        }
+                    }
+                });
+
+                if (ar.y > canvas.height) { ar.y = platforms[0] ? platforms[0].y - HITBOX_H : 50; ar.vy = 0; }
+                if (arGrounded && onPlatform) {
+                    if (onPlatform.x + onPlatform.w - ar.x < 150) ar.vy = JUMP_POWER;
+                } else if (!arGrounded) {
+                    if (!platformBelow && ar.vy > 1 && ar.jumpCount < 10) { ar.vy = JUMP_POWER; ar.jumpCount++; }
+                    if (ar.y > 420 && ar.vy > 0) ar.vy = JUMP_POWER; 
+                }
+                ar.oldY = ar.y;
+            }
+        }
+
         player.oldY = player.y;
         let absVy = Math.abs(player.vy); let gravityMultiplier = 1.0;
         if (absVy < 6.0) gravityMultiplier = 0.2 + (0.8 * (absVy / 6.0));
@@ -1309,7 +1378,6 @@
         platforms.forEach(pf => {
             pf.x -= gameSpeed;
             const px = player.x, pw = player.w;
-            // ▼ プレイヤーキャラクターの衝突判定
             if (px < pf.x + pf.w && px + pw > pf.x) {
                 if (player.vy >= 0 && player.oldY + player.h <= pf.y + player.vy + 10 && player.y + player.h >= pf.y) {
                     player.y = pf.y - player.h; player.vy = 0; isGrounded = true;
@@ -1320,10 +1388,7 @@
             }
         });
 
-        // プレイ中の古い足場の破棄
-        if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) {
-            platforms.shift();
-        }
+        if (platforms.length > 0 && platforms[0].x + platforms[0].w < -100) platforms.shift();
         generatePlatforms(gameSpeed, player.maxJumps);
 
         if (birdEvent.cooldown > 0) birdEvent.cooldown--;
@@ -1424,24 +1489,6 @@
             }
         }
         
-        // プレイ中のスコア加算システム
-        if (frameCount % 10 === 0) { 
-            score += 10; 
-            checkLevelUp(); 
-        }
-        
-        // レベルアップ画面及び割り込み文字のタイマーカウントダウンと非表示への切替処理
-        if (levelUpTimer > 0) { 
-            levelUpTimer--; 
-            levelUpMessage.style.display = 'block'; 
-        } else {
-            levelUpMessage.style.display = 'none';
-        }
-        if (inGameMsgTimer > 0) { 
-            inGameMsgTimer--; 
-            if (inGameMsgTimer === 0) inGameMessage.style.display = 'none'; 
-        }
-        
         scoreDisplay.innerText = `SCORE: ${score}`;
     }
 
@@ -1496,7 +1543,7 @@
         }
 
         const targetW = 90; 
-        const aspectRatio = imgToDraw.naturalWidth / imgToDraw.naturalWidth; 
+        const aspectRatio = imgToDraw.naturalHeight / imgToDraw.naturalWidth; 
         const targetH = targetW * aspectRatio;
 
         const offsetX = (cw - targetW) / 2; 
@@ -1671,16 +1718,11 @@
         gradient.addColorStop(0, currentEnv.bgTop); gradient.addColorStop(0.5, currentEnv.bgMid); gradient.addColorStop(1, currentEnv.bgBottom);
         ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // ▼ 背景の星（150個）の描画処理を大幅に高速化（スタイルの指定をループから出して1回に統一）
         if (currentEnv.starA > 0) {
-            ctx.fillStyle = "white"; 
-            ctx.save();
-            ctx.globalAlpha = Math.min(currentEnv.starA, 1);
             stars.forEach(s => {
-                if (Math.random() > 0.98) return; // チカチカ演出の間引き処理
-                ctx.fillRect(s.x, s.y, s.size, s.size);
+                let twinkle = (Math.random() > 0.95) ? 0.3 : 1;
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(currentEnv.starA, 1) * twinkle})`; ctx.fillRect(s.x, s.y, s.size, s.size);
             });
-            ctx.restore();
         }
 
         let isSpace = false;
@@ -1699,16 +1741,11 @@
         }
         ctx.restore();
 
-        // ▼ 山（7つ）の描画処理を高速化（一筆書きの共通輪郭線（パス）を生成して1回の命令で一気に塗りつぶす）
         if (currentEnv.mountainA > 0) {
             ctx.fillStyle = `rgba(40, 20, 15, ${currentEnv.mountainA})`;
-            ctx.beginPath();
             mountains.forEach(m => {
-                ctx.moveTo(m.x, m.y);
-                ctx.lineTo(m.x + m.w / 2, m.y - m.h);
-                ctx.lineTo(m.x + m.w, m.y);
+                ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + m.w / 2, m.y - m.h); ctx.lineTo(m.x + m.w, m.y); ctx.fill();
             });
-            ctx.fill();
         }
 
         platforms.forEach(pf => drawPlatform(pf));
