@@ -96,18 +96,26 @@
 
         #loadingScreen { display: block; text-align: center; }
 
-        /* 左上に配置するランキング呼び出しボタン */
-        #btnShowRanking {
+        /* 左上のランキングエリア（ボタン＋簡易トップ3） */
+        #rankingArea {
             display: none;
             position: absolute;
             top: 3%;
             left: 3%;
-            background-color: #f1c40f;
-            color: #000;
-            font-size: clamp(12px, 2vw, 16px);
-            padding: 8px 16px;
+            flex-direction: column;
+            gap: 6px;
             z-index: 10;
             pointer-events: auto;
+            width: clamp(130px, 18vw, 180px);
+        }
+
+        /* 左上に配置するランキング呼び出しボタン */
+        #btnShowRanking {
+            background-color: #f1c40f;
+            color: #000;
+            font-size: clamp(12px, 2vw, 15px);
+            padding: 8px 12px;
+            width: 100%;
         }
 
         /* モーダルポップアップ（ランキング表示用） */
@@ -153,15 +161,22 @@
             <p id="loadingProgress" style="color: #888; font-size: clamp(12px, 2.5vw, 16px); margin: 0;">0%</p>
         </div>
 
-        <!-- タイトル画面 (スッキリした状態) -->
+        <!-- タイトル画面 -->
         <div id="titleScreen" class="center-msg">
             <h1>High-Low Silver!</h1>
             <p class="blink" style="margin-top: 25px;">TAP OR PRESS SPACE TO START</p>
         </div>
         <div id="titleScoreBox" class="score-box" style="display: none;"><div id="highScoreDisplayTitle">HIGH SCORE: 0</div></div>
         
-        <!-- 左上のランキング呼び出しボタン -->
-        <button class="btn" id="btnShowRanking">RANKING [R]</button>
+        <!-- 左上のランキングエリア -->
+        <div id="rankingArea">
+            <button class="btn" id="btnShowRanking">RANKING [R]</button>
+            <!-- 簡易トップ3ランキング表示領域 -->
+            <div id="titleTop3" style="display: none; padding: 6px 8px; background: rgba(0, 0, 0, 0.75); border: 1px solid #f1c40f; border-radius: 4px; box-sizing: border-box;">
+                <div style="color: #f1c40f; font-weight: bold; text-align: center; margin-bottom: 4px; font-size: clamp(10px, 1.5vw, 12px); letter-spacing: 0.5px;">🏆 TOP 3 🏆</div>
+                <div id="titleTop3List" style="color: #ccc; font-size: clamp(9px, 1.3vw, 11px); line-height: 1.4; font-family: 'Courier New', Courier, monospace;"></div>
+            </div>
+        </div>
 
         <!-- モーダルポップアップ（ランキング画面） -->
         <div id="rankingModal">
@@ -429,6 +444,8 @@
         } catch (e) {
             console.warn("Could not retrieve ranking: ", e);
             document.getElementById('modalRankingList').innerHTML = `<div style="text-align: center; color: #7f8c8d; font-size: 13px; padding: 20px 0;">[OFFLINE] NETWORK ERROR</div>`;
+            cachedRanking = [];
+            renderRankingUI();
         }
     }
 
@@ -436,11 +453,17 @@
         const modalList = document.getElementById('modalRankingList');
         modalList.innerHTML = "";
         
+        const titleTop3 = document.getElementById('titleTop3');
+        const titleTop3List = document.getElementById('titleTop3List');
+        if (titleTop3List) titleTop3List.innerHTML = "";
+
         if (!Array.isArray(cachedRanking) || cachedRanking.length === 0) {
             modalList.innerHTML = `<div style="text-align: center; color: #888; font-size: 14px; padding: 20px 0;">NO SCORE REGISTERED</div>`;
+            if (titleTop3) titleTop3.style.display = 'none';
             return;
         }
 
+        // モーダル用 (1〜10位)
         cachedRanking.forEach((item, idx) => {
             const li = document.createElement('li');
             li.className = "ranking-item";
@@ -451,6 +474,29 @@
             `;
             modalList.appendChild(li);
         });
+
+        // 左上のボタン真下用 (1〜3位)
+        if (titleTop3 && titleTop3List) {
+            const top3Data = cachedRanking.slice(0, 3);
+            if (top3Data.length > 0) {
+                titleTop3.style.display = 'block';
+                top3Data.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.borderBottom = idx < top3Data.length - 1 ? '1px dashed #444' : 'none';
+                    div.style.padding = '3px 0';
+                    div.innerHTML = `
+                        <span style="color: #e74c3c; font-weight: bold; width: 25px;">#${idx + 1}</span>
+                        <span style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 5px;">${item.name}</span>
+                        <span style="color: #ffd700; font-weight: bold;">${item.score}</span>
+                    `;
+                    titleTop3List.appendChild(div);
+                });
+            } else {
+                titleTop3.style.display = 'none';
+            }
+        }
     }
 
     // 安全策（APIエラー時も例外を出さず進行するエラープロテクション）
@@ -983,8 +1029,8 @@
         gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none'; inGameMessage.style.display = 'none';
         document.getElementById('rankingModal').style.display = 'none'; 
         
-        // タイトル表示時に左上のランキングボタンを表示
-        document.getElementById('btnShowRanking').style.display = 'block';
+        // タイトル表示時に左上のランキングエリアを表示
+        document.getElementById('rankingArea').style.display = 'flex';
 
         clickEffects = []; playerJumpEffects = []; hasPassedRainbow = false; rainbowTimer = 0;
         
@@ -1019,7 +1065,7 @@
     function showInstruction() {
         if (document.getElementById('rankingModal').style.display === 'block') return;
         gameState = 'INSTRUCTION'; titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'block';
-        document.getElementById('btnShowRanking').style.display = 'none'; // 他画面遷移時はランキングボタン非表示
+        document.getElementById('rankingArea').style.display = 'none'; // 他画面遷移時はランキング非表示
     }
 
     function startGame() {
@@ -1039,7 +1085,7 @@
         titleScreen.style.display = 'none'; titleScoreBox.style.display = 'none'; instructionScreen.style.display = 'none';
         playingUI.style.display = 'block'; gameOverScreen.style.display = 'none'; pauseScreen.style.display = 'none';
         levelUpMessage.style.display = 'none'; warningDisplay.style.display = 'none'; inGameMessage.style.display = 'none';
-        document.getElementById('btnShowRanking').style.display = 'none'; // ゲーム開始時は非表示
+        document.getElementById('rankingArea').style.display = 'none'; // ゲーム開始時は非表示
 
         initMountains();
         platforms = [ createPlatform(0, 400, 1200, canvas.height - 400 + 50, 'cliff') ];
@@ -1075,7 +1121,7 @@
 
         gameState = 'GAMEOVER'; 
         playingUI.style.display = 'none'; inGameMessage.style.display = 'none';
-        document.getElementById('btnShowRanking').style.display = 'none'; // ゲームオーバー時もランキングボタン非表示
+        document.getElementById('rankingArea').style.display = 'none'; // ゲームオーバー時もランキング非表示
         
         if (saveHighScore()) newRecordMsg.style.display = 'block'; else newRecordMsg.style.display = 'none';
         checkRivalDefeat(score);
@@ -1426,7 +1472,6 @@
 
                 let data = OBSTACLES[birdEvent.type];
                 let count = (birdEvent.type === 'bird') ? ((currentLevel >= 7) ? 3 : (currentLevel >= 4) ? 2 : 1) : 1;
-                let realW = data.w * data.scale;
                 let realH = data.h * data.scale;
 
                 for (let j = 0; j < count; j++) {
